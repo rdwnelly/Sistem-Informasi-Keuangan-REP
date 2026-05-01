@@ -32,6 +32,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { name: 'Buku Besar', path: '/buku-besar', icon: Wallet },
     { name: 'Laba Rugi', path: '/laba-rugi', icon: BookOpen },
     { name: 'Neraca Saldo', path: '/neraca', icon: BookOpen },
+    { name: 'Buku Piutang', path: '/piutang', icon: BookOpen },
   ];
 
   const unitUsaha = [
