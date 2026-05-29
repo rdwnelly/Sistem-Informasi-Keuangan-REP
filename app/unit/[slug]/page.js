@@ -137,7 +137,7 @@ export default function UnitUsahaPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-blue-100 rounded-lg text-blue-700">

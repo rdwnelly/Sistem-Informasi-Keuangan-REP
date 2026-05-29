@@ -121,7 +121,7 @@ export default function PiutangPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-12 relative">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Buku Pembantu Piutang</h1>
           <p className="text-gray-500 mt-1">Pemantauan tunggakan dan pencatatan pembayaran cicilan aset yayasan.</p>

@@ -280,7 +280,7 @@ export default function JurnalUmumPage() {
 
   return (
     <div className="max-w-5xl mx-auto pb-12">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Jurnal Umum & Saldo

@@ -1,9 +1,9 @@
-'use client';
-import { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react'; // Menambahkan icon Hamburger
+"use client";
+import { useState } from "react";
+import Sidebar from "@/components/Sidebar";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { usePathname } from "next/navigation";
+import { Menu } from "lucide-react"; // Menambahkan icon Hamburger
 
 function LayoutWrapper({ children }) {
   const pathname = usePathname();
@@ -12,7 +12,7 @@ function LayoutWrapper({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Jangan tampilkan navigasi di halaman login
-  if (pathname === '/login') {
+  if (pathname === "/login") {
     return <main className="min-h-screen bg-gray-50">{children}</main>;
   }
 
@@ -20,11 +20,10 @@ function LayoutWrapper({ children }) {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
-      
+    <div className="flex min-h-screen bg-gray-50">
       {/* Overlay Gelap: Muncul di HP saat menu samping terbuka, klik untuk menutup */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-900/50 z-40 md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -35,13 +34,19 @@ function LayoutWrapper({ children }) {
 
       {/* Konten Utama: ml-0 di HP (full), ml-64 di desktop (menyisakan ruang sidebar) */}
       <div className="flex-1 flex flex-col md:ml-64 min-h-screen w-full transition-all duration-300 ease-in-out">
-        
         {/* Header Khusus Mobile (Disembunyikan di Desktop) */}
         <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between md:hidden sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-900 text-lg">SIK-REP</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo.jpg"
+              alt="REP Logo"
+              className="w-8 h-8 rounded-md object-cover"
+            />
+            <span className="font-bold text-gray-900 text-lg">
+              Sistem Informasi Keuangan REP
+            </span>
           </div>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 bg-gray-50 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
           >
@@ -49,11 +54,10 @@ function LayoutWrapper({ children }) {
           </button>
         </header>
 
-        {/* Area Render Halaman: Padding dikecilkan (p-4) untuk HP, dibesarkan (md:p-8) untuk desktop */}
-        <main className="flex-1 p-4 md:p-8 overflow-x-hidden w-full max-w-[100vw]">
+        {/* Area Render Halaman: Padding responsif dan izinkan overflow-x untuk tabel lebar */}
+        <main className="flex-1 px-4 sm:px-6 md:px-8 py-4 md:py-6 overflow-x-auto w-full max-w-[100vw]">
           {children}
         </main>
-
       </div>
     </div>
   );

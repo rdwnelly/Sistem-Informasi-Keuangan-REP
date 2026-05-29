@@ -1,6 +1,6 @@
 {
-  "name": "SIK-REP | Sistem Informasi Keuangan",
-  "short_name": "SIK-REP",
+  "name": "Sistem Informasi Keuangan REP",
+  "short_name": "Sistem Informasi Keuangan REP",
   "description": "Aplikasi Manajemen Keuangan Double-Entry Yayasan Rumah Etnik Papua.",
   "start_url": "/",
   "display": "standalone",

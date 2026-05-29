@@ -1,14 +1,14 @@
-import './globals.css';
-import ClientLayout from '@/components/ClientLayout';
+import "./globals.css";
+import ClientLayout from "@/components/ClientLayout";
 
 export const metadata = {
-  title: 'SIK-REP | Sistem Informasi Keuangan',
-  description: 'Sistem Informasi Keuangan Yayasan Rumah Etnik Papua',
-  manifest: '/manifest.json',
+  title: "Sistem Informasi Keuangan REP | Sistem Informasi Keuangan",
+  description: "Sistem Informasi Keuangan Yayasan Rumah Etnik Papua",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'SIK-REP',
+    statusBarStyle: "default",
+    title: "Sistem Informasi Keuangan REP",
   },
   formatDetection: {
     telephone: false,
@@ -16,8 +16,8 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: '#ffffff',
-  width: 'device-width',
+  themeColor: "#ffffff",
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };

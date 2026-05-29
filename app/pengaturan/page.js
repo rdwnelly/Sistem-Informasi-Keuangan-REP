@@ -30,7 +30,7 @@ export default function PengaturanPage() {
         </h1>
         <p className="text-gray-500 mt-1">
           Pusat informasi profil Yayasan REP dan status operasional sistem
-          SIK-REP.
+          Sistem Informasi Keuangan REP.
         </p>
       </div>
 

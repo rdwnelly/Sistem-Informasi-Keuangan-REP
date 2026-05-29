@@ -28,6 +28,56 @@ const COLORS = [
   "#f97316",
 ];
 
+const formatRupiah = (angka) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(angka);
+
+// Custom Tooltip untuk Bar Chart
+const CustomBarTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-4 border border-gray-200 shadow-lg rounded-xl">
+        <p className="font-bold text-gray-800 mb-2">
+          {label} {new Date().getFullYear()}
+        </p>
+        {payload.map((entry, index) => (
+          <p
+            key={index}
+            className="text-sm font-medium"
+            style={{ color: entry.color }}
+          >
+            {entry.name}: {formatRupiah(entry.value)}
+          </p>
+        ))}
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <p className="text-sm font-bold text-gray-700">
+            Laba Kotor: {formatRupiah(payload[0].value - payload[1].value)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip untuk Pie Chart
+const CustomPieTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-lg rounded-xl">
+        <p className="font-bold text-gray-800">{payload[0].name}</p>
+        <p className="text-sm font-medium text-blue-600 mt-1">
+          Total: {formatRupiah(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function AnalitikPage() {
   const [dataBar, setDataBar] = useState([]);
   const [dataPie, setDataPie] = useState([]);
@@ -147,59 +197,9 @@ export default function AnalitikPage() {
     fetchAnalitikData();
   }, []);
 
-  const formatRupiah = (angka) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(angka);
-
-  // Custom Tooltip untuk Bar Chart
-  const CustomBarTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-4 border border-gray-200 shadow-lg rounded-xl">
-          <p className="font-bold text-gray-800 mb-2">
-            {label} {new Date().getFullYear()}
-          </p>
-          {payload.map((entry, index) => (
-            <p
-              key={index}
-              className="text-sm font-medium"
-              style={{ color: entry.color }}
-            >
-              {entry.name}: {formatRupiah(entry.value)}
-            </p>
-          ))}
-          <div className="mt-2 pt-2 border-t border-gray-100">
-            <p className="text-sm font-bold text-gray-700">
-              Laba Kotor: {formatRupiah(payload[0].value - payload[1].value)}
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Custom Tooltip untuk Pie Chart
-  const CustomPieTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-lg rounded-xl">
-          <p className="font-bold text-gray-800">{payload[0].name}</p>
-          <p className="text-sm font-medium text-blue-600 mt-1">
-            Total: {formatRupiah(payload[0].value)}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="max-w-6xl mx-auto pb-12">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Dashboard Analitik
