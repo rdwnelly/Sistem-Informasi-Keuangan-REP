@@ -28,7 +28,15 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <img
+            src="/logo.jpg"
+            alt="Logo Sistem Informasi Keuangan REP"
+            className="mx-auto mb-4 w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 object-cover rounded-lg"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
             Sistem Informasi Keuangan REP
           </h1>
           <p className="text-sm text-gray-500 mt-2">
