@@ -63,6 +63,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         { name: "Neraca Saldo", path: "/neraca", icon: Scale },
         { name: "Buku Piutang", path: "/piutang", icon: BookOpen },
         { name: "Laba Rugi", path: "/laba-rugi", icon: TrendingUp },
+        { name: "Laporan Keuangan", path: "/laporan-keuangan", icon: Wallet },
       ],
     },
     {
