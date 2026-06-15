@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 function LayoutWrapper({ children }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   // State untuk mengontrol buka/tutup Sidebar di mode Mobile
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -45,7 +45,19 @@ function LayoutWrapper({ children }) {
     return <main className="min-h-screen bg-gray-50">{children}</main>;
   }
 
-  // Jika belum login, jangan render antarmuka utama
+  // Tampilkan loading state saat mengecek auth
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Memuat...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Jika belum login, jangan render antarmuka utama (akan di-redirect oleh AuthContext)
   if (!user) return null;
 
   return (
@@ -123,9 +135,14 @@ function LayoutWrapper({ children }) {
 
 export default function ClientLayout({ children }) {
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator))
+    if (
+      typeof window === "undefined" ||
+      process.env.NODE_ENV !== "production" ||
+      !("serviceWorker" in navigator)
+    )
       return;
-    // Register service worker for PWA support
+
+    // Register service worker only in production environment.
     const swUrl = "/sw.js";
     navigator.serviceWorker
       .register(swUrl)
