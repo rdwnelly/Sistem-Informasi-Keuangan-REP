@@ -10,11 +10,13 @@ import {
   Layers,
   Download,
   ExternalLink,
+  Printer,
 } from "lucide-react";
 
 export default function BukuBesarPage() {
   const [akunData, setAkunData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterBulan, setFilterBulan] = useState("");
 
   // FUNGSI UTAMA: Mengambil dan Menghitung Saldo Secara Dinamis dari Jurnal
   const fetchBukuBesarDinamis = useCallback(async () => {
@@ -41,6 +43,11 @@ export default function BukuBesarPage() {
       // Sistem akan membaca setiap baris jurnal dan menambahkan/mengurangkan saldo
       jurnalSnap.forEach((doc) => {
         const trx = doc.data();
+        
+        if (filterBulan && (!trx.tanggal || !trx.tanggal.startsWith(filterBulan))) {
+          return; // skip if doesn't match selected month
+        }
+
         const nominal = Number(trx.nominal) || 0;
 
         // Proses Sisi Debit (Kas Bertambah, Biaya Bertambah)
@@ -74,7 +81,7 @@ export default function BukuBesarPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filterBulan]);
 
   useEffect(() => {
     fetchBukuBesarDinamis();
@@ -129,9 +136,13 @@ export default function BukuBesarPage() {
     exportToCSV(dataEkspor, `Buku_Besar_REP_${tanggalHariIni}`);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="max-w-6xl mx-auto pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Buku Besar</h1>
           <p className="text-gray-500 mt-1">
@@ -140,7 +151,14 @@ export default function BukuBesarPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <input
+            type="month"
+            value={filterBulan}
+            onChange={(e) => setFilterBulan(e.target.value)}
+            className="flex-1 sm:flex-none border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          />
+
           <button
             onClick={fetchBukuBesarDinamis}
             disabled={loading}
@@ -158,7 +176,25 @@ export default function BukuBesarPage() {
             <Download className="w-4 h-4" />
             Ekspor CSV
           </button>
+
+          <button
+            onClick={handlePrint}
+            disabled={loading || akunData.length === 0}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+          >
+            <Printer className="w-4 h-4" />
+            Cetak Laporan
+          </button>
         </div>
+      </div>
+
+      {/* Header Print-Only */}
+      <div className="hidden print:block mb-8 text-center border-b pb-4">
+        <h1 className="text-2xl font-bold text-gray-900 uppercase">Laporan Buku Besar</h1>
+        <p className="text-gray-600">Yayasan Rumah Etnik Papua (REP)</p>
+        <p className="text-gray-500 text-sm mt-1">
+          Periode: {filterBulan ? filterBulan : "Seluruh Waktu"}
+        </p>
       </div>
 
       {loading && akunData.length === 0 ? (
@@ -255,6 +291,17 @@ export default function BukuBesarPage() {
           })}
         </div>
       )}
+
+      {/* Tambahan CSS khusus untuk Print */}
+      <style jsx global>{`
+        @media print {
+          body { background-color: white; }
+          aside, nav { display: none !important; }
+          main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+          .print\\:hidden { display: none !important; }
+          .print\\:block { display: block !important; }
+        }
+      `}</style>
     </div>
   );
 }
