@@ -14,6 +14,12 @@ export default function DetailBukuBesarPage() {
   const [mutasi, setMutasi] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getCurrentMonthStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const [filterBulan, setFilterBulan] = useState(getCurrentMonthStr());
+
   const fetchDetailAkun = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,6 +41,12 @@ export default function DetailBukuBesarPage() {
       const riwayat = [];
       jurnalSnap.forEach((doc) => {
         const trx = { id: doc.id, ...doc.data() };
+        
+        // Filter by selected month
+        if (filterBulan && (!trx.tanggal || !trx.tanggal.startsWith(filterBulan))) {
+          return;
+        }
+
         // Hanya ambil transaksi yang melibatkan akun ini (baik di posisi Debit maupun Kredit)
         if (trx.akunDebit?.id === akunId || trx.akunKredit?.id === akunId) {
           riwayat.push(trx);
@@ -69,7 +81,7 @@ export default function DetailBukuBesarPage() {
     } finally {
       setLoading(false);
     }
-  }, [akunId]);
+  }, [akunId, filterBulan]);
 
   useEffect(() => {
     fetchDetailAkun();
@@ -121,7 +133,16 @@ export default function DetailBukuBesarPage() {
         <Link href="/buku-besar" className="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Induk Buku Besar
         </Link>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          <input
+            type="month"
+            value={filterBulan}
+            onChange={(e) => setFilterBulan(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          />
+          <button onClick={fetchDetailAkun} disabled={loading} className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 shadow-sm disabled:opacity-50">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Sinkron
+          </button>
           <button onClick={handleExportCSV} disabled={mutasi.length === 0} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50">
             <Download className="w-4 h-4" /> Unduh CSV
           </button>

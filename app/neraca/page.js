@@ -41,17 +41,7 @@ export default function NeracaSaldoPage() {
   const fetchNeracaSaldo = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Tentukan Tanggal Batas Akhir (Cut-off Date)
-      let endDateStr = "9999-12-31"; // Default untuk 'semua'
-      if (filterTipe === "bulanan") {
-        // Mencari hari terakhir di bulan yang dipilih
-        const lastDay = new Date(tahun, bulan, 0).getDate();
-        const strBulan = String(bulan).padStart(2, "0");
-        endDateStr = `${tahun}-${strBulan}-${lastDay}`;
-      } else if (filterTipe === "tahunan") {
-        endDateStr = `${tahun}-12-31`;
-      }
-
+      // 1. Tentukan Tanggal Batas Akhir (Cut-off Date) -> Diganti dengan strict filtering
       // 2. Ambil Kerangka Akun Dasar
       const akunSnap = await getDocs(collection(db, "akun"));
       const mapAkun = {};
@@ -60,15 +50,24 @@ export default function NeracaSaldoPage() {
         mapAkun[a.nama] = { id: doc.id, ...a, calculatedSaldo: 0 };
       });
 
-      // 3. Ambil Jurnal hingga batas tanggal terpilih
+      // 3. Ambil Jurnal
       const jurnalRef = collection(db, "jurnal");
-      // Kueri: Ambil semua transaksi yang tanggalnya <= endDateStr
-      const qJurnal = query(jurnalRef, where("tanggal", "<=", endDateStr));
+      const qJurnal = query(jurnalRef); // Ambil semua, filter di memori
       const jurnalSnap = await getDocs(qJurnal);
 
       // 4. Kalkulasi Double-Entry secara dinamis dari Jurnal
       jurnalSnap.forEach((doc) => {
         const trx = doc.data();
+        const trxDate = new Date(trx.tanggal);
+        const trxMonth = trxDate.getMonth() + 1;
+        const trxYear = trxDate.getFullYear();
+
+        if (filterTipe === "bulanan") {
+          if (trxMonth !== bulan || trxYear !== tahun) return;
+        } else if (filterTipe === "tahunan") {
+          if (trxYear !== tahun) return;
+        }
+
         const nominal = Number(trx.nominal) || 0;
         const dName = trx.akunDebit?.nama;
         const kName = trx.akunKredit?.nama;

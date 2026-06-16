@@ -16,7 +16,11 @@ import {
 export default function BukuBesarPage() {
   const [akunData, setAkunData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterBulan, setFilterBulan] = useState("");
+  const getCurrentMonthStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const [filterBulan, setFilterBulan] = useState(getCurrentMonthStr());
 
   // FUNGSI UTAMA: Mengambil dan Menghitung Saldo Secara Dinamis dari Jurnal
   const fetchBukuBesarDinamis = useCallback(async () => {

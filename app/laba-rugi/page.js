@@ -22,8 +22,8 @@ export default function LabaRugiPage() {
   const [loading, setLoading] = useState(true);
 
   const dateNow = new Date();
-  // PERBAIKAN: Default diubah menjadi 'semua' agar langsung sinkron dengan Neraca Saldo
-  const [filterTipe, setFilterTipe] = useState("semua");
+  // PERBAIKAN: Default diubah menjadi 'bulanan' agar setiap bulan data kosong (mulai buku baru)
+  const [filterTipe, setFilterTipe] = useState("bulanan");
   const [bulan, setBulan] = useState(dateNow.getMonth() + 1);
   const [tahun, setTahun] = useState(dateNow.getFullYear());
 

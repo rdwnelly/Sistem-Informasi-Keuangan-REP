@@ -15,6 +15,22 @@ export default function LaporanKeuanganSAKPage() {
   const [activeTab, setActiveTab] = useState("labarugi");
   const [loading, setLoading] = useState(true);
 
+  // State untuk Filter Periode
+  const dateNow = new Date();
+  const [filterTipe, setFilterTipe] = useState("bulanan"); // 'semua', 'bulanan', 'tahunan'
+  const [bulan, setBulan] = useState(dateNow.getMonth() + 1);
+  const [tahun, setTahun] = useState(dateNow.getFullYear());
+
+  const namaBulan = [
+    "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI",
+    "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER",
+  ];
+
+  let periodeSekarang = "SEMUA WAKTU";
+  if (filterTipe === "bulanan")
+    periodeSekarang = `${namaBulan[bulan - 1]} ${tahun}`;
+  if (filterTipe === "tahunan") periodeSekarang = `TAHUN ${tahun}`;
+
   // State Data Dinamis dari Firebase
   const [dataLabaRugi, setDataLabaRugi] = useState({
     pendapatan: [],
@@ -31,8 +47,6 @@ export default function LaporanKeuanganSAKPage() {
     prive: 0,
     modalAkhir: 0,
   });
-
-  const periodeSekarang = "PERIODE BERJALAN";
 
   // Fungsi untuk menarik data dari Jurnal Umum & Akun (Neraca Saldo)
   const fetchLaporanData = useCallback(async () => {
@@ -53,6 +67,17 @@ export default function LaporanKeuanganSAKPage() {
       // 3. Kalkulasi Saldo
       snapshot.forEach((doc) => {
         const trx = doc.data();
+        
+        const trxDate = new Date(trx.tanggal);
+        const trxMonth = trxDate.getMonth() + 1;
+        const trxYear = trxDate.getFullYear();
+
+        if (filterTipe === "bulanan") {
+          if (trxMonth !== bulan || trxYear !== tahun) return;
+        } else if (filterTipe === "tahunan") {
+          if (trxYear !== tahun) return;
+        }
+
         const nominal = Number(trx.nominal) || 0;
         
         // Safely extract names since akunDebit/akunKredit might be objects or strings
@@ -129,13 +154,12 @@ export default function LaporanKeuanganSAKPage() {
         prive,
         modalAkhir,
       });
-
     } catch (error) {
-      console.error("Gagal memuat data laporan:", error);
+      console.error("Gagal memuat Laporan Keuangan:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filterTipe, bulan, tahun]);
 
   useEffect(() => {
     fetchLaporanData();
@@ -175,15 +199,53 @@ export default function LaporanKeuanganSAKPage() {
             Laporan Keuangan SAK EMKM
           </h1>
           <p className="text-gray-500 mt-1">
-            Bersumber dari Neraca Saldo berjalan.
+            Bersumber dari Jurnal Utama yang dipilih.
           </p>
         </div>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
-        >
-          <Printer className="w-4 h-4" /> Cetak Laporan
-        </button>
+        
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={filterTipe}
+            onChange={(e) => setFilterTipe(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+          >
+            <option value="semua">Semua Waktu</option>
+            <option value="bulanan">Bulan Tertentu</option>
+            <option value="tahunan">Tahun Tertentu</option>
+          </select>
+
+          {filterTipe === "bulanan" && (
+            <select
+              value={bulan}
+              onChange={(e) => setBulan(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+            >
+              {namaBulan.map((nama, i) => (
+                <option key={i + 1} value={i + 1}>{nama}</option>
+              ))}
+            </select>
+          )}
+
+          {["bulanan", "tahunan"].includes(filterTipe) && (
+            <input
+              type="number"
+              value={tahun}
+              onChange={(e) => setTahun(Number(e.target.value))}
+              className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+          )}
+
+          <button onClick={fetchLaporanData} className="flex items-center justify-center bg-white hover:bg-gray-50 text-gray-700 p-2 rounded-lg transition-colors border border-gray-200 shadow-sm" title="Sinkronisasi Data">
+            <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+          </button>
+
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
+          >
+            <Printer className="w-4 h-4" /> Cetak Laporan
+          </button>
+        </div>
       </div>
 
       {/* TABS NAVIGASI */}
