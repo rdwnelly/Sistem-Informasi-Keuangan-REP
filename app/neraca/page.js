@@ -58,9 +58,13 @@ export default function NeracaSaldoPage() {
       // 4. Kalkulasi Double-Entry secara dinamis dari Jurnal
       jurnalSnap.forEach((doc) => {
         const trx = doc.data();
-        const trxDate = new Date(trx.tanggal);
-        const trxMonth = trxDate.getMonth() + 1;
-        const trxYear = trxDate.getFullYear();
+        
+        if (!trx.tanggal) return;
+
+        // trx.tanggal is expected to be "YYYY-MM-DD"
+        const [trxYearStr, trxMonthStr] = trx.tanggal.split("-");
+        const trxYear = parseInt(trxYearStr, 10);
+        const trxMonth = parseInt(trxMonthStr, 10);
 
         if (filterTipe === "bulanan") {
           if (trxMonth !== bulan || trxYear !== tahun) return;

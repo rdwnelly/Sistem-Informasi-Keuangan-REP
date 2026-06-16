@@ -67,11 +67,13 @@ export default function LabaRugiPage() {
 
       jurnalSnap.forEach((doc) => {
         const trx = doc.data();
+        if (!trx.tanggal) return;
+
         const nominal = Number(trx.nominal) || 0;
 
-        const trxDate = new Date(trx.tanggal);
-        const trxMonth = trxDate.getMonth() + 1;
-        const trxYear = trxDate.getFullYear();
+        const [trxYearStr, trxMonthStr] = trx.tanggal.split("-");
+        const trxYear = parseInt(trxYearStr, 10);
+        const trxMonth = parseInt(trxMonthStr, 10);
 
         if (filterTipe === "bulanan") {
           if (trxMonth !== bulan || trxYear !== tahun) return;
