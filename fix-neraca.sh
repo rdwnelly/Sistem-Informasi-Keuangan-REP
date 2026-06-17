@@ -1,0 +1,1 @@
+sed -i '' -e 's/\["Aset", "Biaya"\].includes(tipe) || namaAkun.toUpperCase().includes("KAS")/\["Aset", "Biaya"\].includes(tipe) || (dName \&\& dName.toUpperCase().includes("KAS")) || (kName \&\& kName.toUpperCase().includes("KAS"))/g' app/neraca/page.js

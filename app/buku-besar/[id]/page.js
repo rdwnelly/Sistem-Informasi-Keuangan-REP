@@ -56,7 +56,7 @@ export default function DetailBukuBesarPage() {
       // 3. Kalkulasi Saldo Berjalan (Running Balance) menggunakan prinsip Double-Entry
       let currentSaldo = 0;
       // Normal Balance: Aset dan Biaya bertambah di Debit. Sisanya bertambah di Kredit.
-      const isDebitNormal = ['Aset', 'Biaya'].includes(dataAkun.tipe);
+      const isDebitNormal = ['Aset', 'Biaya'].includes(dataAkun.tipe) || dataAkun.nama.toUpperCase().includes("KAS");
 
       const tabelMutasi = riwayat.map((trx) => {
         let debit = 0;

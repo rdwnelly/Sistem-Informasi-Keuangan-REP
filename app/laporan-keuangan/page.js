@@ -88,7 +88,7 @@ export default function LaporanKeuanganSAKPage() {
         // Proses Sisi Debit
         if (mapAkun[debitName]) {
           const tipe = mapAkun[debitName].tipe;
-          if (["Aset", "Biaya"].includes(tipe)) {
+          if (["Aset", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
             mapAkun[debitName].calculatedSaldo += nominal; // Normal Balance Debit
           } else {
             mapAkun[debitName].calculatedSaldo -= nominal; // Mengurangi Kredit
@@ -98,7 +98,7 @@ export default function LaporanKeuanganSAKPage() {
         // Proses Sisi Kredit
         if (mapAkun[kreditName]) {
           const tipe = mapAkun[kreditName].tipe;
-          if (["Aset", "Biaya"].includes(tipe)) {
+          if (["Aset", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
             mapAkun[kreditName].calculatedSaldo -= nominal; // Mengurangi Debit
           } else {
             mapAkun[kreditName].calculatedSaldo += nominal; // Normal Balance Kredit

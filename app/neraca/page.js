@@ -79,7 +79,7 @@ export default function NeracaSaldoPage() {
         // Proses Sisi Debit
         if (mapAkun[dName]) {
           const tipe = mapAkun[dName].tipe;
-          if (["Aset", "Biaya"].includes(tipe)) {
+          if (["Aset", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
             mapAkun[dName].calculatedSaldo += nominal; // Normal Balance Debit
           } else {
             mapAkun[dName].calculatedSaldo -= nominal; // Mengurangi Kredit
@@ -89,7 +89,7 @@ export default function NeracaSaldoPage() {
         // Proses Sisi Kredit
         if (mapAkun[kName]) {
           const tipe = mapAkun[kName].tipe;
-          if (["Aset", "Biaya"].includes(tipe)) {
+          if (["Aset", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
             mapAkun[kName].calculatedSaldo -= nominal; // Mengurangi Debit
           } else {
             mapAkun[kName].calculatedSaldo += nominal; // Normal Balance Kredit
@@ -112,7 +112,7 @@ export default function NeracaSaldoPage() {
         let nilaiKredit = 0;
 
         // Distribusi Saldo ke kolom D/K
-        if (["Aset", "Biaya"].includes(akun.tipe)) {
+        if (["Aset", "Biaya"].includes(akun.tipe) || akun.nama.toUpperCase().includes("KAS")) {
           if (saldo >= 0) nilaiDebit = saldo;
           else nilaiKredit = Math.abs(saldo); // Pindah ke Kredit jika minus
         } else {

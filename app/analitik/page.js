@@ -82,9 +82,11 @@ export default function AnalitikPage() {
   const [dataBar, setDataBar] = useState([]);
   const [dataPie, setDataPie] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const fetchAnalitikData = async () => {
     setLoading(true);
+    setErrorMsg("");
     try {
       // 1. Persiapan Struktur Data Bulanan
       const namaBulan = [
@@ -188,6 +190,7 @@ export default function AnalitikPage() {
       setDataPie(pieArray);
     } catch (error) {
       console.error("Gagal memuat data analitik:", error);
+      setErrorMsg(error.message || String(error));
     } finally {
       setLoading(false);
     }
@@ -199,6 +202,11 @@ export default function AnalitikPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
+      {errorMsg && (
+        <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+          Error: {errorMsg}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">

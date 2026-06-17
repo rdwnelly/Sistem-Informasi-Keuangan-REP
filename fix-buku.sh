@@ -1,0 +1,1 @@
+sed -i '' -e 's/const isDebitNormal = \['\''Aset'\'', '\''Biaya'\''\].includes(dataAkun.tipe);/const isDebitNormal = \['\''Aset'\'', '\''Biaya'\''\].includes(dataAkun.tipe) || dataAkun.nama.toUpperCase().includes("KAS");/g' app/buku-besar/\[id\]/page.js

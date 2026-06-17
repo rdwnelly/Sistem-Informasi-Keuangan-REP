@@ -1,0 +1,1 @@
+sed -i '' -e 's/(dName && dName.toUpperCase().includes("KAS")) || (kName && kName.toUpperCase().includes("KAS"))/(trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))/g' app/neraca/page.js

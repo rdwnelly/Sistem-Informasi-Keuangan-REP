@@ -10,6 +10,7 @@ export default function PiutangPage() {
   const [akunKas, setAkunKas] = useState([]);
   const [riwayatCicilan, setRiwayatCicilan] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterBulan, setFilterBulan] = useState('');
 
   // State untuk Modal Pembayaran
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,14 +29,14 @@ export default function PiutangPage() {
     try {
       // 1. Ambil semua akun untuk memfilter Piutang dan Kas
       const akunSnapshot = await getDocs(collection(db, 'akun'));
-      const listPiutang = [];
+      const mapPiutang = {};
       const listKas = [];
 
       akunSnapshot.forEach((doc) => {
         const akun = { id: doc.id, ...doc.data() };
         // Deteksi akun piutang berdasarkan namanya (sesuai Excel REP)
         if (akun.nama.toLowerCase().includes('piutang')) {
-          listPiutang.push(akun);
+          mapPiutang[akun.nama] = { ...akun, calculatedSaldo: 0 };
         }
         // Deteksi akun penampung pembayaran (KAS / INVESTASI)
         if (akun.nama === 'KAS' || akun.nama === 'INVESTASI') {
@@ -43,8 +44,38 @@ export default function PiutangPage() {
         }
       });
 
+      // 2. Ambil Riwayat Transaksi Jurnal (Kalkulasi Saldo Dinamis)
+      const qJurnal = query(collection(db, 'jurnal'), orderBy('timestamp', 'asc'));
+      const jurnalSnapshot = await getDocs(qJurnal);
+      const riwayat = [];
+
+      jurnalSnapshot.forEach((doc) => {
+        const trx = { id: doc.id, ...doc.data() };
+        
+        if (filterBulan && (!trx.tanggal || !trx.tanggal.startsWith(filterBulan))) {
+          return;
+        }
+
+        const nominal = Number(trx.nominal) || 0;
+
+        // Mutasi Saldo Piutang (Piutang adalah Aset, bertambah di Debit, berkurang di Kredit)
+        if (trx.akunDebit && mapPiutang[trx.akunDebit.nama]) {
+          mapPiutang[trx.akunDebit.nama].calculatedSaldo += nominal;
+        }
+        if (trx.akunKredit && mapPiutang[trx.akunKredit.nama]) {
+          mapPiutang[trx.akunKredit.nama].calculatedSaldo -= nominal;
+        }
+
+        // Cari transaksi di mana Piutang berada di posisi KREDIT (artinya piutang dibayar/berkurang)
+        if (trx.akunKredit?.nama.toLowerCase().includes('piutang')) {
+          riwayat.unshift(trx); // unshift untuk mendapatkan urutan descending (terbaru di atas)
+        }
+      });
+
+      const listPiutang = Object.values(mapPiutang);
+
       // Urutkan piutang dari saldo terbesar
-      listPiutang.sort((a, b) => b.saldo - a.saldo);
+      listPiutang.sort((a, b) => b.calculatedSaldo - a.calculatedSaldo);
       setDataPiutang(listPiutang);
       setAkunKas(listKas);
 
@@ -52,19 +83,6 @@ export default function PiutangPage() {
       if (listKas.length > 0 && !formData.akunPenerimaId) {
         setFormData(prev => ({ ...prev, akunPenerimaId: listKas[0].id }));
       }
-
-      // 2. Ambil Riwayat Pembayaran Terakhir (Jurnal yang melibatkan piutang)
-      const qJurnal = query(collection(db, 'jurnal'), orderBy('timestamp', 'desc'));
-      const jurnalSnapshot = await getDocs(qJurnal);
-      const riwayat = [];
-
-      jurnalSnapshot.forEach((doc) => {
-        const trx = { id: doc.id, ...doc.data() };
-        // Cari transaksi di mana Piutang berada di posisi KREDIT (artinya piutang dibayar/berkurang)
-        if (trx.akunKredit?.nama.toLowerCase().includes('piutang')) {
-          riwayat.push(trx);
-        }
-      });
 
       setRiwayatCicilan(riwayat.slice(0, 10)); // Ambil 10 transaksi terakhir
     } catch (error) {
@@ -77,12 +95,12 @@ export default function PiutangPage() {
   useEffect(() => {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filterBulan]);
 
   const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
   const formatTanggal = (tgl) => new Date(tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
-  const totalPiutang = dataPiutang.reduce((sum, item) => sum + (item.saldo || 0), 0);
+  const totalPiutang = dataPiutang.reduce((sum, item) => sum + (item.calculatedSaldo || 0), 0);
 
   const openModal = (piutang) => {
     setSelectedPiutang(piutang);
@@ -96,8 +114,8 @@ export default function PiutangPage() {
     setStatus({ type: '', message: '', loading: true });
 
     const nominalBayar = Number(formData.nominal);
-    if (nominalBayar > selectedPiutang.saldo) {
-      setStatus({ type: 'error', message: `Nominal melebihi sisa tunggakan (${formatRupiah(selectedPiutang.saldo)})`, loading: false });
+    if (nominalBayar > selectedPiutang.calculatedSaldo) {
+      setStatus({ type: 'error', message: `Nominal melebihi sisa tunggakan (${formatRupiah(selectedPiutang.calculatedSaldo)})`, loading: false });
       return;
     }
 
@@ -126,10 +144,18 @@ export default function PiutangPage() {
           <h1 className="text-2xl font-bold text-gray-900">Buku Pembantu Piutang</h1>
           <p className="text-gray-500 mt-1">Pemantauan tunggakan dan pencatatan pembayaran cicilan aset yayasan.</p>
         </div>
-        <button onClick={fetchData} disabled={loading} className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 shadow-sm disabled:opacity-50">
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Data
-        </button>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <input
+            type="month"
+            value={filterBulan}
+            onChange={(e) => setFilterBulan(e.target.value)}
+            className="flex-1 sm:flex-none border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          />
+          <button onClick={fetchData} disabled={loading} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 shadow-sm disabled:opacity-50">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan Data
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -163,18 +189,18 @@ export default function PiutangPage() {
                   <div>
                     <h3 className="font-bold text-gray-800">{item.nama}</h3>
                     <p className="text-sm text-gray-500 mt-0.5">Sisa Tunggakan</p>
-                    <p className={`text-xl font-bold mt-1 ${item.saldo > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {formatRupiah(item.saldo)}
+                    <p className={`text-xl font-bold mt-1 ${item.calculatedSaldo > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatRupiah(item.calculatedSaldo)}
                     </p>
                   </div>
                   
                   <button 
                     onClick={() => openModal(item)}
-                    disabled={item.saldo <= 0}
+                    disabled={item.calculatedSaldo <= 0}
                     className="flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors border border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <PlusCircle className="w-4 h-4" />
-                    {item.saldo <= 0 ? 'Telah Lunas' : 'Catat Cicilan'}
+                    {item.calculatedSaldo <= 0 ? 'Telah Lunas' : 'Catat Cicilan'}
                   </button>
                 </div>
               )) : (
@@ -226,7 +252,7 @@ export default function PiutangPage() {
                 <p className="font-bold text-gray-900">{selectedPiutang.nama}</p>
                 <div className="flex justify-between items-end mt-2">
                   <span className="text-sm text-gray-500">Sisa Tunggakan:</span>
-                  <span className="font-bold text-red-600">{formatRupiah(selectedPiutang.saldo)}</span>
+                  <span className="font-bold text-red-600">{formatRupiah(selectedPiutang.calculatedSaldo)}</span>
                 </div>
               </div>
 
@@ -252,7 +278,7 @@ export default function PiutangPage() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 mb-1 block">Nominal Cicilan (Rp)</label>
-                  <input type="number" required min="1" max={selectedPiutang.saldo} placeholder="Contoh: 500000" value={formData.nominal} onChange={(e) => setFormData({...formData, nominal: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                  <input type="number" required min="1" max={selectedPiutang.calculatedSaldo} placeholder="Contoh: 500000" value={formData.nominal} onChange={(e) => setFormData({...formData, nominal: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 mb-1 block">Keterangan Catatan</label>

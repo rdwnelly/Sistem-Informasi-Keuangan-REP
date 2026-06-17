@@ -15,7 +15,7 @@ const UNIT_CONFIG = {
   'sovenir': { 
     nama: 'Toko Sovenir', 
     akunPendapatan: ['Pendapatan Toko Sovenir'], 
-    akunBiaya: ['Biaya Toko', 'Persediaan Toko'] 
+    akunBiaya: ['Biaya Toko', 'PERSEDIAAN TOKO'] 
   },
   'kostum': { 
     nama: 'Penyewaan Kostum', 
@@ -55,24 +55,63 @@ export default function UnitUsahaPage() {
     setLoading(true);
 
     try {
-      // 1. Ambil data Akun khusus untuk unit ini
+      // 1. Ambil Kerangka Semua Akun Khusus Unit Ini
       const akunSnapshot = await getDocs(collection(db, 'akun'));
-      const listPendapatan = [];
-      const listBiaya = [];
-      let tPendapatan = 0;
-      let tBiaya = 0;
-
-      // Filter akun yang relevan dengan unit ini
-      const namaAkunRelevan = [...config.akunPendapatan, ...config.akunBiaya];
+      const mapAkunUnit = {};
 
       akunSnapshot.forEach((doc) => {
-        const akun = { id: doc.id, ...doc.data() };
+        const data = doc.data();
+        if (config.akunPendapatan.includes(data.nama) || config.akunBiaya.includes(data.nama)) {
+          mapAkunUnit[data.nama] = { id: doc.id, ...data, calculatedSaldo: 0 };
+        }
+      });
+
+      // 2. Ambil Riwayat Jurnal khusus
+      const qJurnal = query(collection(db, 'jurnal'), orderBy('timestamp', 'asc'));
+      const jurnalSnapshot = await getDocs(qJurnal);
+      const riwayatTransaksi = [];
+
+      jurnalSnapshot.forEach((doc) => {
+        const trx = { id: doc.id, ...doc.data() };
+        const nominal = Number(trx.nominal) || 0;
+        let isTerkait = false;
+
+        // Proses mutasi jika akun terkait dengan unit ini
+        if (trx.akunDebit && mapAkunUnit[trx.akunDebit.nama]) {
+           const namaAkun = trx.akunDebit.nama;
+           // Normal balance Biaya bertambah di Debit
+           if (config.akunBiaya.includes(namaAkun)) mapAkunUnit[namaAkun].calculatedSaldo += nominal;
+           // Pendapatan berkurang di Debit
+           if (config.akunPendapatan.includes(namaAkun)) mapAkunUnit[namaAkun].calculatedSaldo -= nominal;
+           isTerkait = true;
+        }
+
+        if (trx.akunKredit && mapAkunUnit[trx.akunKredit.nama]) {
+           const namaAkun = trx.akunKredit.nama;
+           // Biaya berkurang di Kredit
+           if (config.akunBiaya.includes(namaAkun)) mapAkunUnit[namaAkun].calculatedSaldo -= nominal;
+           // Normal balance Pendapatan bertambah di Kredit
+           if (config.akunPendapatan.includes(namaAkun)) mapAkunUnit[namaAkun].calculatedSaldo += nominal;
+           isTerkait = true;
+        }
+        
+        if (isTerkait) {
+           riwayatTransaksi.unshift(trx); // Masukkan ke awal agar urutan descending (terbaru di atas)
+        }
+      });
+
+      let tPendapatan = 0;
+      let tBiaya = 0;
+      const listPendapatan = [];
+      const listBiaya = [];
+
+      Object.values(mapAkunUnit).forEach(akun => {
         if (config.akunPendapatan.includes(akun.nama)) {
-          listPendapatan.push(akun);
-          tPendapatan += (akun.saldo || 0);
+           listPendapatan.push(akun);
+           tPendapatan += akun.calculatedSaldo;
         } else if (config.akunBiaya.includes(akun.nama)) {
-          listBiaya.push(akun);
-          tBiaya += (akun.saldo || 0);
+           listBiaya.push(akun);
+           tBiaya += akun.calculatedSaldo;
         }
       });
 
@@ -82,21 +121,6 @@ export default function UnitUsahaPage() {
         totalPendapatan: tPendapatan,
         totalBiaya: tBiaya,
         labaBersih: tPendapatan - tBiaya
-      });
-
-      // 2. Ambil Riwayat Jurnal khusus yang melibatkan akun unit ini
-      const qJurnal = query(collection(db, 'jurnal'), orderBy('timestamp', 'desc'));
-      const jurnalSnapshot = await getDocs(qJurnal);
-      const riwayatTransaksi = [];
-
-      jurnalSnapshot.forEach((doc) => {
-        const trx = { id: doc.id, ...doc.data() };
-        // Cek apakah transaksi ini memengaruhi unit usaha yang sedang dibuka
-        const terkaitUnit = namaAkunRelevan.includes(trx.akunDebit?.nama) || namaAkunRelevan.includes(trx.akunKredit?.nama);
-        
-        if (terkaitUnit) {
-          riwayatTransaksi.push(trx);
-        }
       });
 
       setTransaksiUnit(riwayatTransaksi);
@@ -220,8 +244,12 @@ export default function UnitUsahaPage() {
                           {trx.keterangan}
                         </td>
                         <td className="px-6 py-4 space-y-1">
-                          <div className="text-xs font-medium text-gray-700"><span className="text-gray-400">D:</span> {trx.akunDebit.nama}</div>
-                          <div className="text-xs font-medium text-gray-700"><span className="text-gray-400">K:</span> {trx.akunKredit.nama}</div>
+                          {trx.akunDebit && (
+                            <div className="text-xs font-medium text-gray-700"><span className="text-gray-400">D:</span> {trx.akunDebit.nama}</div>
+                          )}
+                          {trx.akunKredit && (
+                            <div className="text-xs font-medium text-gray-700"><span className="text-gray-400">K:</span> {trx.akunKredit.nama}</div>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-right font-bold text-gray-900 whitespace-nowrap">
                           {formatRupiah(trx.nominal)}
