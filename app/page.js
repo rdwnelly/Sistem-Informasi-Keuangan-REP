@@ -331,7 +331,7 @@ export default function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={dataBar}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -342,7 +342,8 @@ export default function Dashboard() {
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                    tick={{ fontSize: 10, fill: "#6b7280" }}
+                    minTickGap={10}
                   />
                   <YAxis
                     axisLine={false}
@@ -459,11 +460,11 @@ export default function Dashboard() {
             <table className="w-full text-left text-sm">
               <thead className="bg-white text-gray-600 font-medium border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4">Tanggal</th>
-                  <th className="px-6 py-4">Keterangan</th>
-                  <th className="px-6 py-4">Debit</th>
-                  <th className="px-6 py-4">Kredit</th>
-                  <th className="px-6 py-4 text-right">Nominal (Rp)</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4">Tanggal</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4">Keterangan</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4">Debit</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4">Kredit</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4 text-right">Nominal (Rp)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -473,10 +474,10 @@ export default function Dashboard() {
                       key={trx.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 text-gray-500 whitespace-nowrap">
                         {formatTanggal(trx.tanggal)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 min-w-[150px]">
                         <p className="font-medium text-papua-primary">
                           {trx.keterangan}
                         </p>
@@ -487,9 +488,9 @@ export default function Dashboard() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4">
                         {trx.akunDebit ? (
-                          <span className="bg-papua-accent/10 text-papua-primary px-2 py-1 rounded text-xs font-medium border border-blue-100 truncate max-w-[150px] inline-block">
+                          <span className="bg-papua-accent/10 text-papua-primary px-2 py-1 rounded text-xs font-medium border border-blue-100 truncate max-w-[100px] sm:max-w-[150px] inline-block">
                             {trx.akunDebit.nama}
                           </span>
                         ) : (
@@ -497,9 +498,9 @@ export default function Dashboard() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4">
                         {trx.akunKredit ? (
-                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-200 truncate max-w-[150px] inline-block">
+                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-200 truncate max-w-[100px] sm:max-w-[150px] inline-block">
                             {trx.akunKredit.nama}
                           </span>
                         ) : (
@@ -507,7 +508,7 @@ export default function Dashboard() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4 text-right font-bold text-papua-primary whitespace-nowrap">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 text-right font-bold text-papua-primary whitespace-nowrap">
                         {formatRupiah(trx.nominal)}
                       </td>
                     </tr>

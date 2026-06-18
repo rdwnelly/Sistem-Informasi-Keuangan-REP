@@ -238,9 +238,9 @@ export default function BukuBesarPage() {
                   <table className="w-full text-left text-sm">
                     <thead className="bg-white text-gray-500 font-medium border-b border-gray-100">
                       <tr>
-                        <th className="px-6 py-3 w-16 text-center">No</th>
-                        <th className="px-6 py-3">Nama Akun (Klik rincian)</th>
-                        <th className="px-6 py-3 text-right">
+                        <th className="px-4 py-3 sm:px-6 sm:py-3 w-16 text-center">No</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-3">Nama Akun (Klik rincian)</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-3 text-right">
                           Saldo Aktual (Rp)
                         </th>
                       </tr>
@@ -251,10 +251,10 @@ export default function BukuBesarPage() {
                           key={akun.id}
                           className="hover:bg-papua-accent/10/50 transition-colors group"
                         >
-                          <td className="px-6 py-4 text-center text-gray-400">
+                          <td className="px-4 py-3 sm:px-6 sm:py-4 text-center text-gray-400">
                             {index + 1}
                           </td>
-                          <td className="px-6 py-4 font-medium">
+                          <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium">
                             <Link
                               href={`/buku-besar/${akun.id}`}
                               className="flex items-center gap-2 text-gray-700 group-hover:text-papua-primary transition-colors"
@@ -268,7 +268,7 @@ export default function BukuBesarPage() {
                           </td>
                           {/* Render nilai kalkulasi terbaru */}
                           <td
-                            className={`px-6 py-4 text-right font-semibold ${akun.calculatedSaldo < 0 ? "text-papua-red" : "text-papua-primary"}`}
+                            className={`px-4 py-3 sm:px-6 sm:py-4 text-right font-semibold whitespace-nowrap ${akun.calculatedSaldo < 0 ? "text-papua-red" : "text-papua-primary"}`}
                           >
                             {formatRupiah(akun.calculatedSaldo)}
                           </td>
@@ -279,11 +279,11 @@ export default function BukuBesarPage() {
                       <tr>
                         <td
                           colSpan="2"
-                          className="px-6 py-4 text-right font-bold text-gray-700"
+                          className="px-4 py-3 sm:px-6 sm:py-4 text-right font-bold text-gray-700"
                         >
                           Total {tipe}
                         </td>
-                        <td className="px-6 py-4 text-right font-bold text-papua-primary text-base">
+                        <td className="px-4 py-3 sm:px-6 sm:py-4 text-right font-bold text-papua-primary text-base whitespace-nowrap">
                           {formatRupiah(totalKategori)}
                         </td>
                       </tr>

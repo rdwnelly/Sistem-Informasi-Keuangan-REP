@@ -282,11 +282,11 @@ export default function PanjarPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-white text-gray-500 font-medium border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4">Tanggal</th>
-                  <th className="px-6 py-4">Nama Karyawan</th>
-                  <th className="px-6 py-4 text-right">Nominal (Rp)</th>
-                  <th className="px-6 py-4 text-center">Status Pemotongan</th>
-                  <th className="px-6 py-4 text-center">Aksi</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4">Tanggal</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4">Nama Karyawan</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4 text-right">Nominal (Rp)</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4 text-center">Status Pemotongan</th>
+                  <th className="px-4 py-3 sm:px-6 sm:py-4 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -311,23 +311,23 @@ export default function PanjarPage() {
                       key={panjar.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 text-gray-500 whitespace-nowrap">
                         {formatTanggal(panjar.tanggal)}
                       </td>
-                      <td className="px-6 py-4 font-bold text-papua-primary">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 font-bold text-papua-primary">
                         {panjar.namaKaryawan}
                       </td>
-                      <td className="px-6 py-4 text-right font-semibold text-gray-800">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 text-right font-semibold text-gray-800 whitespace-nowrap">
                         {formatRupiah(panjar.nominal)}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                         <span
                           className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${panjar.isLunas ? "bg-papua-green/20 text-papua-green" : "bg-amber-100 text-amber-700"}`}
                         >
                           {panjar.isLunas ? "SUDAH DIPOTONG" : "BELUM LUNAS"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                         <button
                           onClick={() =>
                             handleDelete(panjar.id, panjar.namaKaryawan)

@@ -581,21 +581,21 @@ export default function JurnalUmumPage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-white text-gray-600 font-medium border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4">Tanggal</th>
-                <th className="px-6 py-4">Keterangan</th>
-                <th className="px-6 py-4">Alokasi (D/K)</th>
-                <th className="px-6 py-4 text-right">Nominal</th>
-                <th className="px-6 py-4 text-center">Aksi</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4">Tanggal</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4">Keterangan</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4">Alokasi (D/K)</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 text-right">Nominal</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {riwayat.length > 0 ? (
                 riwayat.map((trx) => (
                   <tr key={trx.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-gray-500 whitespace-nowrap">
                       {formatTanggal(trx.tanggal)}
                     </td>
-                    <td className="px-6 py-4 font-medium text-papua-primary">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium text-papua-primary min-w-[200px]">
                       {trx.keterangan}
                       {trx.isSingleEntry && (
                         <span className="ml-2 inline-block px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">
@@ -603,22 +603,22 @@ export default function JurnalUmumPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 space-y-1">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 space-y-1">
                       {trx.akunDebit && (
-                        <div className="text-xs text-papua-primary font-medium truncate max-w-[200px]">
+                        <div className="text-xs text-papua-primary font-medium truncate max-w-[150px] sm:max-w-[200px]">
                           D: {trx.akunDebit.nama}
                         </div>
                       )}
                       {trx.akunKredit && (
-                        <div className="text-xs text-gray-600 font-medium truncate max-w-[200px]">
+                        <div className="text-xs text-gray-600 font-medium truncate max-w-[150px] sm:max-w-[200px]">
                           K: {trx.akunKredit.nama}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-papua-primary whitespace-nowrap">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-right font-bold text-papua-primary whitespace-nowrap">
                       {formatRupiah(trx.nominal)}
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                       <button
                         onClick={() => handleDelete(trx.id, trx.keterangan)}
                         disabled={status.loading}

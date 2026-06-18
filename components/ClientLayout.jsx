@@ -125,7 +125,7 @@ function LayoutWrapper({ children }) {
         )}
 
         {/* Area Render Halaman: Padding responsif dan izinkan overflow-x untuk tabel lebar */}
-        <main className="flex-1 px-4 sm:px-6 md:px-8 py-4 md:py-6 overflow-x-auto w-full max-w-[100vw]">
+        <main className="flex-1 px-4 sm:px-6 md:px-8 py-4 md:py-6 w-full max-w-full overflow-x-hidden">
           {children}
         </main>
       </div>
