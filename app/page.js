@@ -9,11 +9,93 @@ import {
   Activity,
   RefreshCw,
   ArrowRight,
+  BarChart3,
+  PieChart as PieIcon,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+
+const COLORS = [
+  "#2563eb",
+  "#16a34a",
+  "#eab308",
+  "#dc2626",
+  "#9333ea",
+  "#0891b2",
+  "#f97316",
+];
+
+const formatRupiah = (angka) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(angka);
+
+const formatTanggal = (tgl) =>
+  new Date(tgl).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+const CustomBarTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-4 border border-gray-200 shadow-lg rounded-xl">
+        <p className="font-bold text-gray-800 mb-2">
+          {label} {new Date().getFullYear()}
+        </p>
+        {payload.map((entry, index) => (
+          <p
+            key={index}
+            className="text-sm font-medium"
+            style={{ color: entry.color }}
+          >
+            {entry.name}: {formatRupiah(entry.value)}
+          </p>
+        ))}
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <p className="text-sm font-bold text-gray-700">
+            Laba Kotor: {formatRupiah(payload[0].value - payload[1].value)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomPieTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-lg rounded-xl">
+        <p className="font-bold text-gray-800">{payload[0].name}</p>
+        <p className="text-sm font-medium text-papua-primary mt-1">
+          Total: {formatRupiah(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Dashboard() {
   const [riwayat, setRiwayat] = useState([]);
+  const [dataBar, setDataBar] = useState([]);
+  const [dataPie, setDataPie] = useState([]);
   const [stats, setStats] = useState({
     totalKas: 0,
     pendapatanBulanIni: 0,
@@ -24,15 +106,29 @@ export default function Dashboard() {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. Ambil Peta Tipe Akun (Hanya untuk referensi Pendapatan/Biaya)
       const akunSnap = await getDocs(collection(db, "akun"));
       const mapAkun = {};
       akunSnap.forEach((doc) => {
         mapAkun[doc.data().nama] = doc.data().tipe;
       });
 
-      // 2. Ambil SELURUH Riwayat Jurnal secara descending (terbaru ke terlama)
-      // Kita tidak lagi menggunakan limit(10) di query agar bisa menghitung Total Kas dari awal
+      const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      const currentYear = new Date().getFullYear();
+      const strukturBulanan = namaBulan.map((bulan) => ({
+        name: bulan,
+        Pendapatan: 0,
+        Biaya: 0,
+      }));
+
+      const distribusiPendapatan = {
+        "Yaswar Cafe": 0,
+        "Toko Sovenir": 0,
+        "Penyewaan Kostum": 0,
+        "Kios REP": 0,
+        "Jasa Fotografer": 0,
+        "Lain-lain": 0,
+      };
+
       const qJurnal = query(
         collection(db, "jurnal"),
         orderBy("timestamp", "desc"),
@@ -45,46 +141,72 @@ export default function Dashboard() {
       let totalBiaya = 0;
 
       const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
 
-      // 3. Kalkulasi Agregasi Dinamis (Real-Time Accounting Engine)
       jurnalSnap.forEach((doc) => {
         const trx = { id: doc.id, ...doc.data() };
-        dataRiwayat.push(trx); // Masukkan ke memori untuk tabel
+        dataRiwayat.push(trx); 
 
         const nominal = Number(trx.nominal) || 0;
+        const debitNama = trx.akunDebit?.nama;
+        const kreditNama = trx.akunKredit?.nama;
+        const trxDate = new Date(trx.tanggal);
+        const trxYear = trxDate.getFullYear();
+        const trxMonthIndex = trxDate.getMonth();
 
-        // --- MENGHITUNG TOTAL KAS SECARA DINAMIS ---
-        // Jika KAS ada di Debit, saldo bertambah (Normal Balance Aset)
-        if (trx.akunDebit && trx.akunDebit.nama.toUpperCase().includes("KAS")) {
+        // Kas
+        if (debitNama && debitNama.toUpperCase().includes("KAS")) {
           totalKasSementara += nominal;
         }
-        // Jika KAS ada di Kredit, saldo berkurang
-        if (
-          trx.akunKredit &&
-          trx.akunKredit.nama.toUpperCase().includes("KAS")
-        ) {
+        if (kreditNama && kreditNama.toUpperCase().includes("KAS")) {
           totalKasSementara -= nominal;
         }
 
-        // --- MENGHITUNG METRIK BULAN BERJALAN ---
-        const trxDate = new Date(trx.tanggal);
-        if (
-          trxDate.getMonth() === currentMonth &&
-          trxDate.getFullYear() === currentYear
-        ) {
-          // Pendapatan bertambah di sisi Kredit
-          if (trx.akunKredit && mapAkun[trx.akunKredit.nama] === "Pendapatan") {
+        // Metrik Bulan Berjalan
+        if (trxDate.getMonth() === currentMonth && trxYear === currentYear) {
+          if (kreditNama && mapAkun[kreditNama] === "Pendapatan") {
             totalPendapatan += nominal;
           }
-          // Biaya bertambah di sisi Debit
-          if (trx.akunDebit && mapAkun[trx.akunDebit.nama] === "Biaya") {
+          if (debitNama && mapAkun[debitNama] === "Biaya") {
             totalBiaya += nominal;
           }
         }
+
+        // Bar Chart
+        if (trxYear === currentYear) {
+          if (kreditNama && mapAkun[kreditNama] === "Pendapatan")
+            strukturBulanan[trxMonthIndex].Pendapatan += nominal;
+          if (debitNama && mapAkun[debitNama] === "Pendapatan")
+            strukturBulanan[trxMonthIndex].Pendapatan -= nominal;
+
+          if (debitNama && mapAkun[debitNama] === "Biaya")
+            strukturBulanan[trxMonthIndex].Biaya += nominal;
+          if (kreditNama && mapAkun[kreditNama] === "Biaya")
+            strukturBulanan[trxMonthIndex].Biaya -= nominal;
+        }
+
+        // Pie Chart
+        if (kreditNama && mapAkun[kreditNama] === "Pendapatan") {
+          if (kreditNama.includes("Yaswar Cafe"))
+            distribusiPendapatan["Yaswar Cafe"] += nominal;
+          else if (kreditNama.includes("Sovenir"))
+            distribusiPendapatan["Toko Sovenir"] += nominal;
+          else if (kreditNama.includes("Kostum"))
+            distribusiPendapatan["Penyewaan Kostum"] += nominal;
+          else if (kreditNama.includes("Kios"))
+            distribusiPendapatan["Kios REP"] += nominal;
+          else if (kreditNama.includes("Fotografer"))
+            distribusiPendapatan["Jasa Fotografer"] += nominal;
+          else distribusiPendapatan["Lain-lain"] += nominal;
+        }
       });
 
-      // 4. Update State antarmuka (Potong array riwayat hanya 10 teratas untuk tabel)
+      const pieArray = Object.keys(distribusiPendapatan)
+        .map((key) => ({ name: key, value: distribusiPendapatan[key] }))
+        .filter((item) => item.value > 0)
+        .sort((a, b) => b.value - a.value);
+
+      setDataBar(strukturBulanan);
+      setDataPie(pieArray);
       setRiwayat(dataRiwayat.slice(0, 10));
       setStats({
         totalKas: totalKasSementara,
@@ -102,24 +224,11 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const formatRupiah = (angka) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(angka);
-  const formatTanggal = (tgl) =>
-    new Date(tgl).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
   return (
     <div className="max-w-6xl mx-auto pb-12">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard Utama</h1>
+          <h1 className="text-2xl font-bold text-papua-primary">Dashboard Utama</h1>
           <p className="text-gray-500 mt-1">
             Ringkasan performa keuangan Yayasan Rumah Etnik Papua.
           </p>
@@ -136,13 +245,12 @@ export default function Dashboard() {
 
       {/* METRIK KEUANGAN */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* KARTU 1: SALDO KAS */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 relative overflow-hidden">
           <div className="absolute right-0 top-0 opacity-5">
             <Wallet className="w-32 h-32 -mt-4 -mr-4" />
           </div>
           <div className="flex items-center gap-3 mb-4 relative z-10">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="p-2 bg-papua-accent/10 text-papua-primary rounded-lg">
               <Wallet className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
@@ -152,19 +260,18 @@ export default function Dashboard() {
           {loading ? (
             <div className="h-9 bg-gray-200 rounded animate-pulse w-3/4 mt-1 relative z-10"></div>
           ) : (
-            <p className="text-3xl font-bold text-gray-900 relative z-10">
+            <p className="text-3xl font-bold text-papua-primary relative z-10">
               {formatRupiah(stats.totalKas)}
             </p>
           )}
         </div>
 
-        {/* KARTU 2: PENDAPATAN */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 relative overflow-hidden">
           <div className="absolute right-0 top-0 opacity-5">
             <TrendingUp className="w-32 h-32 -mt-4 -mr-4" />
           </div>
           <div className="flex items-center gap-3 mb-4 relative z-10">
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+            <div className="p-2 bg-papua-green/10 text-papua-green rounded-lg">
               <TrendingUp className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
@@ -174,19 +281,18 @@ export default function Dashboard() {
           {loading ? (
             <div className="h-9 bg-gray-200 rounded animate-pulse w-3/4 mt-1 relative z-10"></div>
           ) : (
-            <p className="text-3xl font-bold text-gray-900 relative z-10">
+            <p className="text-3xl font-bold text-papua-primary relative z-10">
               {formatRupiah(stats.pendapatanBulanIni)}
             </p>
           )}
         </div>
 
-        {/* KARTU 3: BIAYA */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 relative overflow-hidden">
           <div className="absolute right-0 top-0 opacity-5">
             <TrendingDown className="w-32 h-32 -mt-4 -mr-4" />
           </div>
           <div className="flex items-center gap-3 mb-4 relative z-10">
-            <div className="p-2 bg-red-50 text-red-600 rounded-lg">
+            <div className="p-2 bg-papua-red/10 text-papua-red rounded-lg">
               <TrendingDown className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
@@ -196,25 +302,149 @@ export default function Dashboard() {
           {loading ? (
             <div className="h-9 bg-gray-200 rounded animate-pulse w-3/4 mt-1 relative z-10"></div>
           ) : (
-            <p className="text-3xl font-bold text-gray-900 relative z-10">
+            <p className="text-3xl font-bold text-papua-primary relative z-10">
               {formatRupiah(stats.biayaBulanIni)}
             </p>
           )}
         </div>
       </div>
 
+      {/* GRAFIK ANALITIK */}
+      {!loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* BAR CHART */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-papua-accent/10 text-papua-primary rounded-lg">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-papua-primary">
+                  Arus Kas Bulanan ({new Date().getFullYear()})
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Perbandingan Pendapatan dan Biaya Operasional
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 w-full h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dataBar}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f3f4f6"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                    tickFormatter={(value) => `Rp${value / 1000000}M`}
+                  />
+                  <RechartsTooltip content={<CustomBarTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: "20px" }} />
+                  <Bar
+                    dataKey="Pendapatan"
+                    fill="#2563eb"
+                    radius={[4, 4, 0, 0]}
+                    barSize={30}
+                  />
+                  <Bar
+                    dataKey="Biaya"
+                    fill="#ef4444"
+                    radius={[4, 4, 0, 0]}
+                    barSize={30}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* PIE CHART */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-papua-green/10 text-papua-green rounded-lg">
+                <PieIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-papua-primary">
+                  Kontribusi Unit Usaha
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Distribusi sumber pendapatan terbesar Yayasan REP
+                </p>
+              </div>
+            </div>
+            {dataPie.length > 0 ? (
+              <div className="flex-1 w-full h-[350px] flex flex-col">
+                <ResponsiveContainer width="100%" height="80%">
+                  <PieChart>
+                    <Pie
+                      data={dataPie}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={80}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {dataPie.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                          stroke="none"
+                        />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip content={<CustomPieTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap justify-center gap-4 mt-2">
+                  {dataPie.map((entry, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
+                      ></div>
+                      <span className="text-xs font-medium text-gray-600">
+                        {entry.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+                Belum ada data pendapatan untuk ditampilkan.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* TABEL RIWAYAT TRANSAKSI TERBARU */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-gray-400" />
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-papua-primary">
               10 Transaksi Terakhir
             </h2>
           </div>
           <Link
             href="/jurnal"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
+            className="text-sm font-medium text-papua-primary hover:text-papua-primary flex items-center gap-1 transition-colors"
           >
             Lihat Semua Jurnal <ArrowRight className="w-4 h-4" />
           </Link>
@@ -223,7 +453,7 @@ export default function Dashboard() {
         <div className="overflow-x-auto">
           {loading ? (
             <div className="flex justify-center p-12">
-              <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+              <RefreshCw className="w-6 h-6 text-papua-accent animate-spin" />
             </div>
           ) : (
             <table className="w-full text-left text-sm">
@@ -247,7 +477,7 @@ export default function Dashboard() {
                         {formatTanggal(trx.tanggal)}
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-papua-primary">
                           {trx.keterangan}
                         </p>
                         {trx.isSingleEntry && (
@@ -259,7 +489,7 @@ export default function Dashboard() {
 
                       <td className="px-6 py-4">
                         {trx.akunDebit ? (
-                          <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium border border-blue-100 truncate max-w-[150px] inline-block">
+                          <span className="bg-papua-accent/10 text-papua-primary px-2 py-1 rounded text-xs font-medium border border-blue-100 truncate max-w-[150px] inline-block">
                             {trx.akunDebit.nama}
                           </span>
                         ) : (
@@ -277,7 +507,7 @@ export default function Dashboard() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4 text-right font-bold text-gray-900 whitespace-nowrap">
+                      <td className="px-6 py-4 text-right font-bold text-papua-primary whitespace-nowrap">
                         {formatRupiah(trx.nominal)}
                       </td>
                     </tr>

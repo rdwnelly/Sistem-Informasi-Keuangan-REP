@@ -42,8 +42,6 @@ export default function PengaturanPage() {
         "karyawan",
         "panjar",
         "gaji_bulanan",
-        "piutang",
-        "buku_pembantu_piutang",
         "saldo_awal",
       ];
 
@@ -87,7 +85,7 @@ export default function PengaturanPage() {
         <div className="flex items-center gap-3">
           <Settings className="w-8 h-8 text-gray-700" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-papua-primary">
               Pengaturan Sistem
             </h1>
             <p className="text-gray-500 mt-1">
@@ -98,17 +96,17 @@ export default function PengaturanPage() {
       </div>
 
       {status.message && status.type === "success" && (
-        <div className="p-4 rounded-lg mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700">
+        <div className="p-4 rounded-lg mb-6 flex items-center gap-3 bg-papua-green/10 border border-papua-green/30 text-papua-green">
           <CheckCircle2 className="w-5 h-5 shrink-0" />
           <span className="text-sm font-medium">{status.message}</span>
         </div>
       )}
 
       {/* DANGER ZONE SECTION */}
-      <div className="bg-white rounded-xl border-2 border-red-100 shadow-sm overflow-hidden">
-        <div className="bg-red-50 p-5 border-b border-red-100 flex items-center gap-3">
-          <ShieldAlert className="w-6 h-6 text-red-600" />
-          <h2 className="text-lg font-black text-red-700 uppercase tracking-wide">
+      <div className="bg-white rounded-xl border-2 border-papua-red/20 shadow-sm overflow-hidden">
+        <div className="bg-papua-red/10 p-5 border-b border-papua-red/20 flex items-center gap-3">
+          <ShieldAlert className="w-6 h-6 text-papua-red" />
+          <h2 className="text-lg font-black text-papua-red uppercase tracking-wide">
             Danger Zone (Zona Berbahaya)
           </h2>
         </div>
@@ -116,7 +114,7 @@ export default function PengaturanPage() {
         <div className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="max-w-xl">
-              <h3 className="text-base font-bold text-gray-900 mb-2">
+              <h3 className="text-base font-bold text-papua-primary mb-2">
                 Hapus Seluruh Data Sistem (Hard Reset)
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -134,7 +132,7 @@ export default function PengaturanPage() {
 
             <button
               onClick={handleOpenModal}
-              className="shrink-0 flex items-center gap-2 bg-white border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-5 py-3 rounded-lg text-sm font-bold transition-all shadow-sm"
+              className="shrink-0 flex items-center gap-2 bg-white border-2 border-papua-red text-papua-red hover:bg-papua-red hover:text-white px-5 py-3 rounded-lg text-sm font-bold transition-all shadow-sm"
             >
               <Trash2 className="w-5 h-5" /> Hard Reset Sistem
             </button>
@@ -146,10 +144,10 @@ export default function PengaturanPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
-            <div className="bg-red-600 p-6 flex flex-col items-center text-center relative">
+            <div className="bg-papua-red p-6 flex flex-col items-center text-center relative">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-red-200 hover:text-white transition-colors"
+                className="absolute top-4 right-4 text-papua-red/30 hover:text-white transition-colors"
                 disabled={isDeleting}
               >
                 <X className="w-6 h-6" />
@@ -166,13 +164,13 @@ export default function PengaturanPage() {
               <p className="text-sm text-gray-700 text-center font-medium leading-relaxed">
                 Anda akan menghapus seluruh data keuangan dan SDM Yayasan Rumah
                 Etnik Papua secara{" "}
-                <span className="font-black text-red-600">PERMANEN</span>.
+                <span className="font-black text-papua-red">PERMANEN</span>.
                 Tindakan ini tidak bisa dibatalkan meskipun oleh administrator
                 database.
               </p>
 
               {status.type === "error" && (
-                <div className="p-3 bg-red-100 text-red-700 text-xs font-bold rounded border border-red-200 text-center">
+                <div className="p-3 bg-papua-red/20 text-papua-red text-xs font-bold rounded border border-papua-red/30 text-center">
                   {status.message}
                 </div>
               )}
@@ -181,7 +179,7 @@ export default function PengaturanPage() {
                 <label className="block text-xs font-bold text-gray-600 mb-2 text-center uppercase">
                   Untuk melanjutkan, ketik kalimat di bawah ini:
                 </label>
-                <div className="text-center font-mono font-bold text-red-600 bg-red-50 py-2 border border-red-100 rounded mb-3 select-none">
+                <div className="text-center font-mono font-bold text-papua-red bg-papua-red/10 py-2 border border-papua-red/20 rounded mb-3 select-none">
                   {REQUIRED_CONFIRM_TEXT}
                 </div>
                 <input
@@ -189,7 +187,7 @@ export default function PengaturanPage() {
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="Ketik persis seperti kalimat di atas..."
-                  className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all font-mono text-sm text-center"
+                  className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-papua-red/100 focus:ring-2 focus:ring-papua-red/30 transition-all font-mono text-sm text-center"
                   autoComplete="off"
                   disabled={isDeleting}
                 />
@@ -207,7 +205,7 @@ export default function PengaturanPage() {
                 <button
                   onClick={executeDeleteAllData}
                   disabled={confirmText !== REQUIRED_CONFIRM_TEXT || isDeleting}
-                  className="flex-1 flex justify-center items-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors disabled:opacity-30 disabled:hover:bg-red-600 shadow-lg"
+                  className="flex-1 flex justify-center items-center gap-2 px-4 py-3 bg-papua-red text-white rounded-lg font-bold hover:bg-papua-red transition-colors disabled:opacity-30 disabled:hover:bg-papua-red shadow-lg"
                 >
                   {isDeleting ? (
                     <>

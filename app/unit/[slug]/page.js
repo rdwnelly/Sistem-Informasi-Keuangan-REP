@@ -164,10 +164,10 @@ export default function UnitUsahaPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
+            <div className="p-2 bg-blue-100 rounded-lg text-papua-primary">
               <Store className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">{config.nama}</h1>
+            <h1 className="text-2xl font-bold text-papua-primary">{config.nama}</h1>
           </div>
           <p className="text-gray-500">Laporan performa dan arus kas unit usaha operasional.</p>
         </div>
@@ -183,7 +183,7 @@ export default function UnitUsahaPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-gray-100 shadow-sm">
-          <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+          <RefreshCw className="w-8 h-8 text-papua-accent animate-spin mb-4" />
           <p className="text-gray-500 font-medium">Memuat performa unit...</p>
         </div>
       ) : (
@@ -192,23 +192,23 @@ export default function UnitUsahaPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-green-100 text-green-600"><TrendingUp className="w-5 h-5" /></div>
+                <div className="p-2 rounded-full bg-papua-green/20 text-papua-green"><TrendingUp className="w-5 h-5" /></div>
                 <p className="text-sm font-medium text-gray-500">Total Pendapatan Unit</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{formatRupiah(dataUnit.totalPendapatan)}</h3>
+              <h3 className="text-2xl font-bold text-papua-primary">{formatRupiah(dataUnit.totalPendapatan)}</h3>
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-red-100 text-red-600"><TrendingDown className="w-5 h-5" /></div>
+                <div className="p-2 rounded-full bg-papua-red/20 text-papua-red"><TrendingDown className="w-5 h-5" /></div>
                 <p className="text-sm font-medium text-gray-500">Total Biaya & Pengeluaran</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{formatRupiah(dataUnit.totalBiaya)}</h3>
+              <h3 className="text-2xl font-bold text-papua-primary">{formatRupiah(dataUnit.totalBiaya)}</h3>
             </div>
 
-            <div className={`p-6 rounded-xl border shadow-sm flex flex-col justify-center ${dataUnit.labaBersih >= 0 ? 'bg-blue-600 border-blue-700 text-white' : 'bg-red-600 border-red-700 text-white'}`}>
+            <div className={`p-6 rounded-xl border shadow-sm flex flex-col justify-center ${dataUnit.labaBersih >= 0 ? 'bg-papua-primary border-blue-700 text-white' : 'bg-papua-red border-papua-red text-white'}`}>
               <div className="flex items-center gap-3 mb-2">
-                <div className={`p-2 rounded-full ${dataUnit.labaBersih >= 0 ? 'bg-blue-500' : 'bg-red-500'}`}>
+                <div className={`p-2 rounded-full ${dataUnit.labaBersih >= 0 ? 'bg-papua-accent/100' : 'bg-papua-red/100'}`}>
                   <DollarSign className="w-5 h-5 text-white" />
                 </div>
                 <p className="text-sm font-medium text-white/80">Kontribusi Laba Bersih</p>
@@ -221,7 +221,7 @@ export default function UnitUsahaPage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
               <Activity className="w-5 h-5 text-gray-500" />
-              <h2 className="text-lg font-bold text-gray-900">Aktivitas Transaksi {config.nama}</h2>
+              <h2 className="text-lg font-bold text-papua-primary">Aktivitas Transaksi {config.nama}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -240,7 +240,7 @@ export default function UnitUsahaPage() {
                         <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                           {formatTanggal(trx.tanggal)}
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">
+                        <td className="px-6 py-4 font-medium text-papua-primary">
                           {trx.keterangan}
                         </td>
                         <td className="px-6 py-4 space-y-1">
@@ -251,7 +251,7 @@ export default function UnitUsahaPage() {
                             <div className="text-xs font-medium text-gray-700"><span className="text-gray-400">K:</span> {trx.akunKredit.nama}</div>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-right font-bold text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-4 text-right font-bold text-papua-primary whitespace-nowrap">
                           {formatRupiah(trx.nominal)}
                         </td>
                       </tr>

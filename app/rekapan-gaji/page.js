@@ -289,7 +289,7 @@ export default function RekapanGajiPage() {
       <div className="print:hidden">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-papua-primary">
               Rekapan & Slip Gaji
             </h1>
             <p className="text-gray-500 mt-1">
@@ -306,7 +306,7 @@ export default function RekapanGajiPage() {
 
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-2 text-gray-700 font-medium">
-            <Calculator className="w-5 h-5 text-blue-600" />
+            <Calculator className="w-5 h-5 text-papua-primary" />
             <span>Kalkulasi Periode:</span>
           </div>
           <div className="flex items-center gap-3">
@@ -339,8 +339,8 @@ export default function RekapanGajiPage() {
           <div
             className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${
               status.type === "error"
-                ? "bg-red-50 border-red-200 text-red-700"
-                : "bg-green-50 border-green-200 text-green-700"
+                ? "bg-papua-red/10 border-papua-red/30 text-papua-red"
+                : "bg-papua-green/10 border-papua-green/30 text-papua-green"
             }`}
           >
             <CheckCircle2 className="w-5 h-5 shrink-0" />
@@ -379,7 +379,7 @@ export default function RekapanGajiPage() {
                 {loading ? (
                   <tr>
                     <td colSpan={12} className="px-6 py-12 text-center">
-                      <RefreshCw className="w-6 h-6 text-blue-500 animate-spin mx-auto" />
+                      <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
                     </td>
                   </tr>
                 ) : dataRekapan.length === 0 ? (
@@ -402,12 +402,12 @@ export default function RekapanGajiPage() {
                     return (
                       <tr
                         key={data.idKaryawan}
-                        className={`hover:bg-blue-50/50 transition-colors ${data.isSaved ? "bg-green-50/30" : ""}`}
+                        className={`hover:bg-papua-accent/10/50 transition-colors ${data.isSaved ? "bg-papua-green/10/30" : ""}`}
                       >
-                        <td className="px-4 py-4 font-bold text-gray-900">
+                        <td className="px-4 py-4 font-bold text-papua-primary">
                           {data.namaKaryawan}
                           {data.isSaved && (
-                            <span className="ml-2 inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[9px] rounded-full">
+                            <span className="ml-2 inline-block px-2 py-0.5 bg-papua-green/20 text-papua-green text-[9px] rounded-full">
                               TERSIMPAN
                             </span>
                           )}
@@ -418,34 +418,34 @@ export default function RekapanGajiPage() {
                         <td className="px-4 py-4 text-right text-gray-700">
                           {formatRupiah(data.gajiPokok)}
                         </td>
-                        <td className="px-4 py-4 text-right text-red-600">
+                        <td className="px-4 py-4 text-right text-papua-red">
                           {formatRupiah(Number(data.tidakHadir) || 0)}
                         </td>
-                        <td className="px-4 py-4 text-right text-red-600">
+                        <td className="px-4 py-4 text-right text-papua-red">
                           {formatRupiah(Number(data.kasbonLama) || 0)}
                         </td>
-                        <td className="px-4 py-4 text-right text-red-600">
+                        <td className="px-4 py-4 text-right text-papua-red">
                           {formatRupiah(Number(data.dendaKostum) || 0)}
                         </td>
                         <td className="px-4 py-4 text-right text-amber-600 font-medium">
                           {formatRupiah(Number(data.panjar) || 0)}
                         </td>
-                        <td className="px-4 py-4 text-right text-blue-600">
+                        <td className="px-4 py-4 text-right text-papua-primary">
                           {formatRupiah(lemburVal)}
                         </td>
-                        <td className="px-4 py-4 text-right text-blue-600">
+                        <td className="px-4 py-4 text-right text-papua-primary">
                           {formatRupiah(bonusVal)}
                         </td>
-                        <td className="px-4 py-4 text-right text-red-600">
+                        <td className="px-4 py-4 text-right text-papua-red">
                           {formatRupiah(totalPotonganKhusus)}
                         </td>
-                        <td className="px-4 py-4 text-right font-bold text-green-700 text-sm">
+                        <td className="px-4 py-4 text-right font-bold text-papua-green text-sm">
                           {formatRupiah(netGaji)}
                         </td>
                         <td className="px-4 py-4 text-center flex items-center justify-center gap-2">
                           <button
                             onClick={() => openModalKalkulator(data)}
-                            className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-bold transition-colors"
+                            className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-papua-primary rounded text-xs font-bold transition-colors"
                           >
                             Kalkulasi
                           </button>
@@ -493,13 +493,13 @@ export default function RekapanGajiPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <label className="text-sm">
-                <div className="text-xs text-gray-600 font-bold text-blue-600">Hari Hadir (Hari)</div>
+                <div className="text-xs text-gray-600 font-bold text-papua-primary">Hari Hadir (Hari)</div>
                 <input
                   name="hariHadir"
                   type="number"
                   value={activeKaryawan.hariHadir || 0}
                   onChange={handleInputChange}
-                  className="mt-1 w-full border border-blue-300 rounded-md px-3 py-2 text-sm bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full border border-blue-300 rounded-md px-3 py-2 text-sm bg-papua-accent/10 focus:outline-none focus:ring-2 focus:ring-papua-primary"
                 />
                 <div className="text-[10px] text-gray-400 mt-0.5">Potongan otomatis jika &lt; 28 hari</div>
               </label>
@@ -585,7 +585,7 @@ export default function RekapanGajiPage() {
 
               <div className="text-sm col-span-2 mt-2 pt-4 border-t border-gray-100 flex justify-between items-center">
                 <div className="text-xs text-gray-600 uppercase font-bold">Net Gaji (Preview)</div>
-                <div className="text-lg font-bold text-green-700">
+                <div className="text-lg font-bold text-papua-green">
                   {formatRupiah(hitungNetGaji(activeKaryawan))}
                 </div>
               </div>
@@ -601,7 +601,7 @@ export default function RekapanGajiPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold"
+                className="px-4 py-2 bg-papua-primary hover:bg-papua-primary text-white rounded-md text-sm font-bold"
               >
                 <Save className="inline-block w-4 h-4 mr-2 -mt-0.5" /> Simpan
               </button>

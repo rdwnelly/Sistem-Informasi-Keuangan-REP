@@ -50,7 +50,7 @@ function LayoutWrapper({ children }) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-papua-accent/20 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Memuat...</p>
         </div>
       </main>
@@ -83,7 +83,7 @@ function LayoutWrapper({ children }) {
               alt="REP Logo"
               className="w-8 h-8 rounded-md object-cover"
             />
-            <span className="font-bold text-gray-900 text-sm truncate max-w-[160px]">
+            <span className="font-bold text-papua-primary text-sm truncate max-w-[160px]">
               Sistem Informasi Keuangan REP
             </span>
           </div>
@@ -103,7 +103,7 @@ function LayoutWrapper({ children }) {
                     console.warn("PWA install prompt error:", err);
                   }
                 }}
-                className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md text-sm font-medium"
+                className="px-3 py-1.5 bg-papua-accent/10 text-papua-primary rounded-md text-sm font-medium"
               >
                 Install
               </button>
@@ -111,7 +111,7 @@ function LayoutWrapper({ children }) {
 
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 bg-gray-50 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              className="p-2 bg-gray-50 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-papua-primary transition-colors"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -119,7 +119,7 @@ function LayoutWrapper({ children }) {
         </header>
 
         {showInstallSuccess && (
-          <div className="fixed right-4 top-16 z-50 bg-green-600 text-white px-4 py-2 rounded shadow">
+          <div className="fixed right-4 top-16 z-50 bg-papua-green text-white px-4 py-2 rounded shadow">
             Aplikasi berhasil diinstal
           </div>
         )}

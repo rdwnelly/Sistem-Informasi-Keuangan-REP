@@ -16,7 +16,21 @@ module.exports = {
         xl: "2rem",
       },
     },
-    extend: {},
+    extend: {
+      colors: {
+        papua: {
+          primary: "#4E342E",
+          accent: "#FBC02D",
+          green: "#2E7D32",
+          red: "#C62828",
+          bg: "#FAFAFA",
+        }
+      },
+      fontFamily: {
+        sans: ['var(--font-inter)', 'sans-serif'],
+        serif: ['var(--font-lora)', 'serif'],
+      }
+    },
   },
   plugins: [],
 };

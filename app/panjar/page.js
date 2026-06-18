@@ -144,7 +144,7 @@ export default function PanjarPage() {
   return (
     <div className="max-w-5xl mx-auto pb-12">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-papua-primary">
           Catatan Panjar (Kasbon)
         </h1>
         <p className="text-gray-500 mt-1">
@@ -154,7 +154,7 @@ export default function PanjarPage() {
 
       {status.message && (
         <div
-          className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${status.type === "error" ? "bg-red-50 border-red-200 text-red-700" : status.type === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}
+          className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${status.type === "error" ? "bg-papua-red/10 border-papua-red/30 text-papua-red" : status.type === "success" ? "bg-papua-green/10 border-papua-green/30 text-papua-green" : "bg-papua-accent/10 border-papua-accent/20 text-papua-primary"}`}
         >
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span className="text-sm font-medium">{status.message}</span>
@@ -165,8 +165,8 @@ export default function PanjarPage() {
         {/* FORM INPUT PANJAR */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:col-span-1 h-fit">
           <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
-            <WalletCards className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-bold text-gray-900">
+            <WalletCards className="w-5 h-5 text-papua-primary" />
+            <h2 className="text-lg font-bold text-papua-primary">
               Input Panjar Baru
             </h2>
           </div>
@@ -182,7 +182,7 @@ export default function PanjarPage() {
                 required
                 value={formData.tanggal}
                 onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary text-sm"
               />
             </div>
 
@@ -195,7 +195,7 @@ export default function PanjarPage() {
                 required
                 value={formData.karyawanId}
                 onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary text-sm bg-white"
               >
                 <option value="">-- Pilih Karyawan --</option>
                 {karyawanList.map((k) => (
@@ -218,13 +218,13 @@ export default function PanjarPage() {
                 placeholder="Contoh: 100000"
                 value={formData.nominal}
                 onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary text-sm"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm pt-4 mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-papua-primary hover:bg-papua-primary text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm pt-4 mt-2"
             >
               <Plus className="w-4 h-4" /> Simpan Catatan Panjar
             </button>
@@ -234,7 +234,7 @@ export default function PanjarPage() {
         {/* TABEL RIWAYAT PANJAR */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm lg:col-span-2 overflow-hidden">
           <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-papua-primary">
               Riwayat Panjar Karyawan
             </h2>
 
@@ -293,7 +293,7 @@ export default function PanjarPage() {
                 {loading ? (
                   <tr>
                     <td colSpan="5" className="px-6 py-12 text-center">
-                      <RefreshCw className="w-6 h-6 text-blue-500 animate-spin mx-auto" />
+                      <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
                     </td>
                   </tr>
                 ) : panjarList.length === 0 ? (
@@ -314,7 +314,7 @@ export default function PanjarPage() {
                       <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                         {formatTanggal(panjar.tanggal)}
                       </td>
-                      <td className="px-6 py-4 font-bold text-gray-900">
+                      <td className="px-6 py-4 font-bold text-papua-primary">
                         {panjar.namaKaryawan}
                       </td>
                       <td className="px-6 py-4 text-right font-semibold text-gray-800">
@@ -322,7 +322,7 @@ export default function PanjarPage() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span
-                          className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${panjar.isLunas ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
+                          className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${panjar.isLunas ? "bg-papua-green/20 text-papua-green" : "bg-amber-100 text-amber-700"}`}
                         >
                           {panjar.isLunas ? "SUDAH DIPOTONG" : "BELUM LUNAS"}
                         </span>
@@ -333,7 +333,7 @@ export default function PanjarPage() {
                             handleDelete(panjar.id, panjar.namaKaryawan)
                           }
                           disabled={panjar.isLunas}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                          className="p-2 text-gray-400 hover:text-papua-red hover:bg-papua-red/10 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
                           title={
                             panjar.isLunas
                               ? "Tidak dapat dihapus karena sudah masuk rekapan gaji"

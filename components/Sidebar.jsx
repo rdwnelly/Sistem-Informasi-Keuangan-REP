@@ -57,11 +57,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       title: "AKUNTANSI & KEUANGAN",
       menus: [
         { name: "Dashboard", path: "/", icon: LayoutDashboard },
-        { name: "Analitik Visual", path: "/analitik", icon: LayoutDashboard },
         { name: "Jurnal Umum", path: "/jurnal", icon: BookOpen },
         { name: "Buku Besar", path: "/buku-besar", icon: Book },
         { name: "Neraca Saldo", path: "/neraca", icon: Scale },
-        { name: "Buku Piutang", path: "/piutang", icon: BookOpen },
         { name: "Laba Rugi", path: "/laba-rugi", icon: TrendingUp },
         { name: "Laporan Keuangan", path: "/laporan-keuangan", icon: Wallet },
       ],
@@ -113,13 +111,14 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         aria-modal={isOpen}
         aria-hidden={!isOpen}
         className={`
-          w-[min(16rem,80vw)] md:w-64 bg-white border-r border-gray-100 h-screen fixed left-0 top-0 flex flex-col z-50
-          transform transition-transform duration-300 ease-in-out shadow-xl md:shadow-none
+          w-[min(16rem,80vw)] md:w-64 bg-papua-primary text-white h-screen fixed left-0 top-0 flex flex-col z-50
+          transform transition-transform duration-300 ease-in-out shadow-xl md:shadow-none overflow-hidden
           ${isOpen ? "translate-x-0" : "-translate-x-full"} 
           md:translate-x-0
         `}
       >
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+        <div className="absolute inset-x-0 bottom-0 h-64 bg-[url('/papua_motif_watermark.png')] bg-repeat opacity-5 pointer-events-none"></div>
+        <div className="p-6 border-b border-white/10 flex justify-between items-center relative z-10">
           <div className="flex items-center gap-3">
             <img
               src="/logo.jpg"
@@ -127,10 +126,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               className="w-10 h-10 rounded-md object-cover"
             />
             <div>
-              <h1 className="text-xl font-bold text-gray-800 tracking-tight">
+              <h1 className="text-xl font-bold text-white tracking-tight">
                 Sistem Informasi Keuangan REP
               </h1>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-white/60 mt-1">
                 Yayasan Rumah Etnik Papua
               </p>
             </div>
@@ -141,16 +140,16 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ref={closeBtnRef}
             onClick={() => setIsOpen && setIsOpen(false)}
             aria-label="Tutup menu"
-            className="md:hidden p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded-lg transition-colors"
+            className="md:hidden p-2 text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-hide relative z-10">
           {menuGroups.map((group, index) => (
             <div key={index}>
-              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              <p className="px-4 text-xs font-semibold text-papua-accent/60 uppercase tracking-wider mb-2">
                 {group.title}
               </p>
               <ul className="space-y-1">
@@ -163,8 +162,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                         className={
                           baseClass +
                           (isActive
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900")
+                            ? "bg-papua-accent/20 text-papua-accent"
+                            : "text-white/70 hover:bg-white/10 hover:text-white")
                         }
                       >
                         <item.icon className="w-5 h-5" />
@@ -178,11 +177,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           ))}
         </div>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-white/10 relative z-10">
           <Link
             href="/pengaturan"
             className={
-              baseClass + "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              baseClass + "text-white/70 hover:bg-white/10 hover:text-white"
             }
           >
             <Settings className="w-5 h-5" />
@@ -190,7 +189,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           </Link>
           <button
             onClick={logout}
-            className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium text-red-600 hover:bg-red-50"
+            className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium text-papua-red hover:bg-papua-red/20"
           >
             <LogOut className="w-5 h-5" />
             Keluar Sistem

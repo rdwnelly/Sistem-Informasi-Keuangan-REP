@@ -193,7 +193,7 @@ export default function NeracaSaldoPage() {
     <div className="max-w-5xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-papua-primary">
             Neraca Saldo Terperinci
           </h1>
           <p className="text-gray-500 mt-1">
@@ -205,7 +205,7 @@ export default function NeracaSaldoPage() {
           <button
             onClick={handleExportCSV}
             disabled={loading || dataNeraca.length === 0}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 bg-papua-green hover:bg-papua-green text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
           >
             <Download className="w-4 h-4" /> CSV
           </button>
@@ -222,7 +222,7 @@ export default function NeracaSaldoPage() {
       {/* Kontrol Filter Periode (Sembunyikan saat dicetak) */}
       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row items-center gap-4 print:hidden">
         <div className="flex items-center gap-2 text-gray-700 font-medium w-full sm:w-auto">
-          <Filter className="w-5 h-5 text-blue-600" />
+          <Filter className="w-5 h-5 text-papua-primary" />
           <span className="text-sm">Cut-off Periode:</span>
         </div>
 
@@ -230,7 +230,7 @@ export default function NeracaSaldoPage() {
           <select
             value={filterTipe}
             onChange={(e) => setFilterTipe(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-papua-primary outline-none bg-gray-50"
           >
             <option value="bulanan">Per Bulan</option>
             <option value="tahunan">Per Tahun</option>
@@ -241,7 +241,7 @@ export default function NeracaSaldoPage() {
             <select
               value={bulan}
               onChange={(e) => setBulan(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-papua-primary outline-none bg-gray-50"
             >
               {namaBulan.map((nama, idx) => (
                 <option key={idx} value={idx + 1}>
@@ -255,7 +255,7 @@ export default function NeracaSaldoPage() {
             <select
               value={tahun}
               onChange={(e) => setTahun(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-papua-primary outline-none bg-gray-50"
             >
               {[2024, 2025, 2026, 2027].map((thn) => (
                 <option key={thn} value={thn}>
@@ -270,24 +270,24 @@ export default function NeracaSaldoPage() {
       {/* Indikator Balance */}
       {!loading && (
         <div
-          className={`p-4 rounded-xl mb-6 flex items-center justify-between border print:hidden ${isBalanced ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+          className={`p-4 rounded-xl mb-6 flex items-center justify-between border print:hidden ${isBalanced ? "bg-papua-green/10 border-papua-green/30" : "bg-papua-red/10 border-papua-red/30"}`}
         >
           <div className="flex items-center gap-3">
             <div
-              className={`p-2 rounded-lg ${isBalanced ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+              className={`p-2 rounded-lg ${isBalanced ? "bg-papua-green/20 text-papua-green" : "bg-papua-red/20 text-papua-red"}`}
             >
               <Scale className="w-6 h-6" />
             </div>
             <div>
               <h3
-                className={`font-bold ${isBalanced ? "text-green-800" : "text-red-800"}`}
+                className={`font-bold ${isBalanced ? "text-papua-green" : "text-papua-red"}`}
               >
                 {isBalanced
                   ? "NERACA SEIMBANG (BALANCED)"
                   : "NERACA TIDAK SEIMBANG (UNBALANCED)"}
               </h3>
               <p
-                className={`text-sm mt-0.5 ${isBalanced ? "text-green-600" : "text-red-600"}`}
+                className={`text-sm mt-0.5 ${isBalanced ? "text-papua-green" : "text-papua-red"}`}
               >
                 {isBalanced
                   ? "Total Debit dan Kredit telah selaras."
@@ -300,7 +300,7 @@ export default function NeracaSaldoPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-gray-100 shadow-sm print:hidden">
-          <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+          <RefreshCw className="w-8 h-8 text-papua-accent animate-spin mb-4" />
           <p className="text-gray-500 font-medium">
             Mengkalkulasi ulang Neraca Saldo...
           </p>
@@ -340,13 +340,13 @@ export default function NeracaSaldoPage() {
                 {dataNeraca.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-4 py-2 border-r border-gray-300 text-center text-gray-500"></td>
-                    <td className="px-4 py-2 border-r border-gray-300 font-medium text-gray-900">
+                    <td className="px-4 py-2 border-r border-gray-300 font-medium text-papua-primary">
                       {item.deskripsi}
                     </td>
-                    <td className="px-4 py-2 border-r border-gray-300 text-right text-gray-900">
+                    <td className="px-4 py-2 border-r border-gray-300 text-right text-papua-primary">
                       {formatRupiah(item.nilaiDebit)}
                     </td>
-                    <td className="px-4 py-2 text-right text-gray-900">
+                    <td className="px-4 py-2 text-right text-papua-primary">
                       {formatRupiah(item.nilaiKredit)}
                     </td>
                   </tr>

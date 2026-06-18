@@ -25,8 +25,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 w-full max-w-md">
+    <div className="relative flex items-center justify-center min-h-screen bg-[url('/papua_login_bg.png')] bg-cover bg-center">
+      <div className="absolute inset-0 bg-papua-primary/80 backdrop-blur-[2px] z-0"></div>
+      <div className="relative z-10 bg-white/95 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-white/20 w-full max-w-md">
         <div className="text-center mb-8">
           <img
             src="/logo.jpg"
@@ -36,7 +37,7 @@ export default function LoginPage() {
               e.target.style.display = "none";
             }}
           />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-papua-primary tracking-tight">
             Sistem Informasi Keuangan REP
           </h1>
           <p className="text-sm text-gray-500 mt-2">
@@ -47,7 +48,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700">
+          <div className="mb-6 p-4 bg-papua-red/10 border border-papua-red/30 rounded-lg flex items-start gap-3 text-papua-red">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <p className="text-sm font-medium">{error}</p>
           </div>
@@ -65,7 +66,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-papua-accent focus:border-papua-accent outline-none transition-all"
                 placeholder="admin@rumahetnikpapua.com"
               />
             </div>
@@ -82,7 +83,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-papua-accent focus:border-papua-accent outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -91,7 +92,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 mt-4"
+            className="w-full bg-papua-accent hover:bg-yellow-500 text-papua-primary py-2.5 rounded-lg font-bold transition-colors disabled:opacity-50 mt-4 shadow-lg"
           >
             {loading ? "Memverifikasi..." : "Masuk ke Sistem"}
           </button>

@@ -187,7 +187,7 @@ export default function LaporanKeuanganSAKPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-papua-accent animate-spin" />
       </div>
     );
   }
@@ -196,7 +196,7 @@ export default function LaporanKeuanganSAKPage() {
     <div className="max-w-6xl mx-auto pb-12 print:mx-0 print:pb-0 print:max-w-full">
       <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-papua-primary">
             Laporan Keuangan SAK EMKM
           </h1>
           <p className="text-gray-500 mt-1">
@@ -208,7 +208,7 @@ export default function LaporanKeuanganSAKPage() {
           <select
             value={filterTipe}
             onChange={(e) => setFilterTipe(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-papua-primary focus:border-papua-primary outline-none"
           >
             <option value="semua">Semua Waktu</option>
             <option value="bulanan">Bulan Tertentu</option>
@@ -219,7 +219,7 @@ export default function LaporanKeuanganSAKPage() {
             <select
               value={bulan}
               onChange={(e) => setBulan(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-papua-primary focus:border-papua-primary outline-none"
             >
               {namaBulan.map((nama, i) => (
                 <option key={i + 1} value={i + 1}>{nama}</option>
@@ -232,7 +232,7 @@ export default function LaporanKeuanganSAKPage() {
               type="number"
               value={tahun}
               onChange={(e) => setTahun(Number(e.target.value))}
-              className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-papua-primary focus:border-papua-primary outline-none"
             />
           )}
 
@@ -262,7 +262,7 @@ export default function LaporanKeuanganSAKPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-3 border-b-2 text-sm font-bold transition-colors ${
               activeTab === tab.id
-                ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                ? "border-papua-primary text-papua-primary bg-papua-accent/10/50"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
@@ -271,19 +271,19 @@ export default function LaporanKeuanganSAKPage() {
         ))}
       </div>
 
-      <div className="bg-white print:bg-transparent rounded-xl shadow-sm print:shadow-none p-8 print:p-0 border border-gray-100 print:border-none min-h-[800px] text-gray-900">
+      <div className="bg-white print:bg-transparent rounded-xl shadow-sm print:shadow-none p-8 print:p-0 border border-gray-100 print:border-none min-h-[800px] text-papua-primary">
         
         {/* TABEL LABA RUGI */}
         <div className={`${activeTab === "labarugi" ? "block" : "hidden"} print:block print:page-break-after-always mb-12`}>
           <div className="text-center mb-8 border-b-2 border-black pb-4">
-            <h1 className="text-xl font-black uppercase tracking-widest">YAYASAN RUMAH ETNIK PAPUA</h1>
+            <h1 className="text-xl font-serif font-black uppercase tracking-widest text-papua-primary">YAYASAN RUMAH ETNIK PAPUA</h1>
             <h2 className="text-lg font-bold uppercase mt-1">LAPORAN LABA RUGI</h2>
             <p className="text-sm font-semibold uppercase">{periodeSekarang}</p>
           </div>
           <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="border-y-2 border-black">
-                <th className="py-2 text-left w-1/2 uppercase font-bold">Keterangan</th>
+                <th className="py-2 text-left w-3/4 uppercase font-bold">Keterangan</th>
                 <th className="py-2 text-right w-1/4 uppercase font-bold px-2">Saldo Berjalan</th>
               </tr>
             </thead>
@@ -323,14 +323,14 @@ export default function LaporanKeuanganSAKPage() {
         {/* TABEL PERUBAHAN EKUITAS */}
         <div className={`${activeTab === "perubahanmodal" ? "block" : "hidden"} print:block print:page-break-after-always mb-12`}>
           <div className="text-center mb-8 border-b-2 border-black pb-4">
-            <h1 className="text-xl font-black uppercase tracking-widest">YAYASAN RUMAH ETNIK PAPUA</h1>
+            <h1 className="text-xl font-serif font-black uppercase tracking-widest text-papua-primary">YAYASAN RUMAH ETNIK PAPUA</h1>
             <h2 className="text-lg font-bold uppercase mt-1">LAPORAN PERUBAHAN EKUITAS</h2>
             <p className="text-sm font-semibold uppercase">{periodeSekarang}</p>
           </div>
           <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="border-y-2 border-black">
-                <th className="py-2 text-left w-1/2 uppercase font-bold">Keterangan</th>
+                <th className="py-2 text-left w-3/4 uppercase font-bold">Keterangan</th>
                 <th className="py-2 text-right w-1/4 uppercase font-bold px-2">Nilai</th>
               </tr>
             </thead>
@@ -358,11 +358,11 @@ export default function LaporanKeuanganSAKPage() {
         {/* TABEL NERACA */}
         <div className={`${activeTab === "neraca" ? "block" : "hidden"} print:block print:page-break-after-always mb-12`}>
           <div className="text-center mb-8 border-b-2 border-black pb-4">
-            <h1 className="text-xl font-black uppercase tracking-widest">YAYASAN RUMAH ETNIK PAPUA</h1>
+            <h1 className="text-xl font-serif font-black uppercase tracking-widest text-papua-primary">YAYASAN RUMAH ETNIK PAPUA</h1>
             <h2 className="text-lg font-bold uppercase mt-1">LAPORAN POSISI KEUANGAN (NERACA)</h2>
             <p className="text-sm font-semibold uppercase">{periodeSekarang}</p>
           </div>
-          <div className="flex flex-col md:flex-row gap-8">
+          <div className="flex flex-col md:flex-row print:flex-row gap-8">
             {/* SISI ASET */}
             <div className="flex-1">
               <h3 className="font-black uppercase border-b-2 border-black mb-2 pb-1">ASET</h3>
@@ -428,9 +428,9 @@ export default function LaporanKeuanganSAKPage() {
           {/* Validation Info (Print Hidden) */}
           <div className="print:hidden mt-8 text-center">
             {Math.abs(totalAset - totalKewajibanDanEkuitas) < 1 ? (
-              <span className="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold">✅ Neraca Seimbang (Balanced)</span>
+              <span className="inline-block bg-papua-green/20 text-papua-green px-4 py-2 rounded-lg font-bold">✅ Neraca Seimbang (Balanced)</span>
             ) : (
-              <span className="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-lg font-bold">❌ Neraca Tidak Seimbang: Selisih {formatRp(Math.abs(totalAset - totalKewajibanDanEkuitas))}</span>
+              <span className="inline-block bg-papua-red/20 text-papua-red px-4 py-2 rounded-lg font-bold">❌ Neraca Tidak Seimbang: Selisih {formatRp(Math.abs(totalAset - totalKewajibanDanEkuitas))}</span>
             )}
           </div>
         </div>
@@ -438,7 +438,7 @@ export default function LaporanKeuanganSAKPage() {
         {/* TABEL CALK */}
         <div className={`${activeTab === "calk" ? "block" : "hidden"} print:block print:page-break-after-always mb-12`}>
           <div className="text-center mb-8 border-b-2 border-black pb-4">
-            <h1 className="text-xl font-black uppercase tracking-widest">YAYASAN RUMAH ETNIK PAPUA</h1>
+            <h1 className="text-xl font-serif font-black uppercase tracking-widest text-papua-primary">YAYASAN RUMAH ETNIK PAPUA</h1>
             <h2 className="text-lg font-bold uppercase mt-1">CATATAN ATAS LAPORAN KEUANGAN</h2>
             <p className="text-sm font-semibold uppercase">{periodeSekarang}</p>
           </div>

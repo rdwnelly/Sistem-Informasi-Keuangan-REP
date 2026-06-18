@@ -148,7 +148,7 @@ export default function BukuBesarPage() {
     <div className="max-w-6xl mx-auto pb-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Buku Besar</h1>
+          <h1 className="text-2xl font-bold text-papua-primary">Buku Besar</h1>
           <p className="text-gray-500 mt-1">
             Laporan keselarasan saldo dihitung langsung dari riwayat Jurnal
             Utama.
@@ -160,7 +160,7 @@ export default function BukuBesarPage() {
             type="month"
             value={filterBulan}
             onChange={(e) => setFilterBulan(e.target.value)}
-            className="flex-1 sm:flex-none border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="flex-1 sm:flex-none border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-papua-primary focus:border-papua-primary outline-none"
           />
 
           <button
@@ -175,7 +175,7 @@ export default function BukuBesarPage() {
           <button
             onClick={handleExportCSV}
             disabled={loading || akunData.length === 0}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-papua-green hover:bg-papua-green text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             Ekspor CSV
@@ -194,7 +194,7 @@ export default function BukuBesarPage() {
 
       {/* Header Print-Only */}
       <div className="hidden print:block mb-8 text-center border-b pb-4">
-        <h1 className="text-2xl font-bold text-gray-900 uppercase">Laporan Buku Besar</h1>
+        <h1 className="text-2xl font-bold text-papua-primary uppercase">Laporan Buku Besar</h1>
         <p className="text-gray-600">Yayasan Rumah Etnik Papua (REP)</p>
         <p className="text-gray-500 text-sm mt-1">
           Periode: {filterBulan ? filterBulan : "Seluruh Waktu"}
@@ -203,7 +203,7 @@ export default function BukuBesarPage() {
 
       {loading && akunData.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-gray-100 shadow-sm">
-          <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+          <RefreshCw className="w-8 h-8 text-papua-accent animate-spin mb-4" />
           <p className="text-gray-500 font-medium">
             Melakukan kalkulasi Buku Besar...
           </p>
@@ -227,7 +227,7 @@ export default function BukuBesarPage() {
               >
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-blue-600" />
+                    <Layers className="w-5 h-5 text-papua-primary" />
                     <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">
                       {tipe}
                     </h2>
@@ -249,7 +249,7 @@ export default function BukuBesarPage() {
                       {daftarAkun.map((akun, index) => (
                         <tr
                           key={akun.id}
-                          className="hover:bg-blue-50/50 transition-colors group"
+                          className="hover:bg-papua-accent/10/50 transition-colors group"
                         >
                           <td className="px-6 py-4 text-center text-gray-400">
                             {index + 1}
@@ -257,7 +257,7 @@ export default function BukuBesarPage() {
                           <td className="px-6 py-4 font-medium">
                             <Link
                               href={`/buku-besar/${akun.id}`}
-                              className="flex items-center gap-2 text-gray-700 group-hover:text-blue-600 transition-colors"
+                              className="flex items-center gap-2 text-gray-700 group-hover:text-papua-primary transition-colors"
                             >
                               <Wallet className="w-4 h-4 text-gray-300 group-hover:text-blue-400" />
                               <span className="group-hover:underline">
@@ -268,7 +268,7 @@ export default function BukuBesarPage() {
                           </td>
                           {/* Render nilai kalkulasi terbaru */}
                           <td
-                            className={`px-6 py-4 text-right font-semibold ${akun.calculatedSaldo < 0 ? "text-red-600" : "text-gray-900"}`}
+                            className={`px-6 py-4 text-right font-semibold ${akun.calculatedSaldo < 0 ? "text-papua-red" : "text-papua-primary"}`}
                           >
                             {formatRupiah(akun.calculatedSaldo)}
                           </td>
@@ -283,7 +283,7 @@ export default function BukuBesarPage() {
                         >
                           Total {tipe}
                         </td>
-                        <td className="px-6 py-4 text-right font-bold text-blue-700 text-base">
+                        <td className="px-6 py-4 text-right font-bold text-papua-primary text-base">
                           {formatRupiah(totalKategori)}
                         </td>
                       </tr>

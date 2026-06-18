@@ -111,7 +111,7 @@ export default function DetailBukuBesarPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+        <RefreshCw className="w-8 h-8 text-papua-accent animate-spin mb-4" />
         <p className="text-gray-500 font-medium">Memuat Kartu Akun...</p>
       </div>
     );
@@ -121,7 +121,7 @@ export default function DetailBukuBesarPage() {
     return (
       <div className="text-center p-12">
         <h2 className="text-2xl font-bold text-gray-800">Akun tidak ditemukan.</h2>
-        <Link href="/buku-besar" className="text-blue-600 hover:underline mt-4 inline-block">Kembali ke Buku Besar</Link>
+        <Link href="/buku-besar" className="text-papua-primary hover:underline mt-4 inline-block">Kembali ke Buku Besar</Link>
       </div>
     );
   }
@@ -130,7 +130,7 @@ export default function DetailBukuBesarPage() {
     <div className="max-w-6xl mx-auto pb-12">
       {/* Tombol Kembali & Aksi Cetak - Disembunyikan saat di-print */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 print:hidden">
-        <Link href="/buku-besar" className="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-medium">
+        <Link href="/buku-besar" className="flex items-center gap-2 text-gray-500 hover:text-papua-primary transition-colors font-medium">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Induk Buku Besar
         </Link>
         <div className="flex gap-3 items-center">
@@ -138,12 +138,12 @@ export default function DetailBukuBesarPage() {
             type="month"
             value={filterBulan}
             onChange={(e) => setFilterBulan(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-papua-primary focus:border-papua-primary outline-none"
           />
           <button onClick={fetchDetailAkun} disabled={loading} className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 shadow-sm disabled:opacity-50">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Sinkron
           </button>
-          <button onClick={handleExportCSV} disabled={mutasi.length === 0} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50">
+          <button onClick={handleExportCSV} disabled={mutasi.length === 0} className="flex items-center gap-2 bg-papua-green hover:bg-papua-green text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50">
             <Download className="w-4 h-4" /> Unduh CSV
           </button>
           <button onClick={handlePrint} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
@@ -154,12 +154,12 @@ export default function DetailBukuBesarPage() {
 
       {/* Header Kop Laporan e-Statement */}
       <div className="bg-white rounded-t-xl border border-gray-200 border-b-0 p-6 flex items-start gap-4">
-        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl print:hidden">
+        <div className="p-3 bg-papua-accent/10 text-papua-primary rounded-xl print:hidden">
           <FileText className="w-8 h-8" />
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">E-STATEMENT / KARTU BUKU BESAR</p>
-          <h1 className="text-3xl font-bold text-gray-900 mt-1">{akunData.nama}</h1>
+          <h1 className="text-3xl font-bold text-papua-primary mt-1">{akunData.nama}</h1>
           <div className="flex gap-4 mt-2 text-sm text-gray-600">
             <p><span className="font-semibold text-gray-800">Yayasan:</span> Rumah Etnik Papua (REP)</p>
             <p>&bull;</p>
@@ -179,7 +179,7 @@ export default function DetailBukuBesarPage() {
                 <th className="px-5 py-4">Keterangan Transaksi</th>
                 <th className="px-5 py-4 text-right w-36">Debit</th>
                 <th className="px-5 py-4 text-right w-36">Kredit</th>
-                <th className="px-5 py-4 text-right w-40 bg-blue-50/50">Saldo</th>
+                <th className="px-5 py-4 text-right w-40 bg-papua-accent/10/50">Saldo</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -187,14 +187,14 @@ export default function DetailBukuBesarPage() {
                 <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
                   <td className="px-5 py-4 text-center text-gray-500">{mutasi.length - index}</td>
                   <td className="px-5 py-4 text-gray-600 whitespace-nowrap">{formatTanggal(item.tanggal)}</td>
-                  <td className="px-5 py-4 font-medium text-gray-900">{item.keterangan}</td>
+                  <td className="px-5 py-4 font-medium text-papua-primary">{item.keterangan}</td>
                   <td className="px-5 py-4 text-right font-medium text-gray-700">
                     {item.nilaiDebit > 0 ? formatRupiah(item.nilaiDebit) : '-'}
                   </td>
                   <td className="px-5 py-4 text-right font-medium text-gray-700">
                     {item.nilaiKredit > 0 ? formatRupiah(item.nilaiKredit) : '-'}
                   </td>
-                  <td className="px-5 py-4 text-right font-bold text-blue-700 bg-blue-50/30">
+                  <td className="px-5 py-4 text-right font-bold text-papua-primary bg-papua-accent/10/30">
                     {formatRupiah(item.saldoBerjalan)}
                   </td>
                 </tr>

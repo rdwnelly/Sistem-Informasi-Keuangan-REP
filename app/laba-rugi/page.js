@@ -149,7 +149,7 @@ export default function LabaRugiPage() {
     <div className="max-w-4xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-papua-primary">
             Laporan Laba Rugi
           </h1>
           <p className="text-gray-500 mt-1">
@@ -171,7 +171,7 @@ export default function LabaRugiPage() {
       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6 print:hidden">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-gray-700 font-medium">
-            <Filter className="w-5 h-5 text-blue-600" />
+            <Filter className="w-5 h-5 text-papua-primary" />
             <span className="text-sm">Periode Laporan:</span>
           </div>
 
@@ -179,7 +179,7 @@ export default function LabaRugiPage() {
             <select
               value={filterTipe}
               onChange={(e) => setFilterTipe(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-blue-700"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-papua-primary font-semibold text-papua-primary"
             >
               <option value="semua">Semua Waktu (Kumulatif)</option>
               <option value="bulanan">Per Bulan Terpilih</option>
@@ -189,7 +189,7 @@ export default function LabaRugiPage() {
               <select
                 value={bulan}
                 onChange={(e) => setBulan(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-papua-primary"
               >
                 {namaBulan.map((nama, idx) => (
                   <option key={idx} value={idx + 1}>
@@ -202,7 +202,7 @@ export default function LabaRugiPage() {
               <select
                 value={tahun}
                 onChange={(e) => setTahun(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-papua-primary"
               >
                 {[2024, 2025, 2026, 2027].map((thn) => (
                   <option key={thn} value={thn}>
@@ -215,7 +215,7 @@ export default function LabaRugiPage() {
         </div>
 
         {filterTipe === "semua" && (
-          <div className="mt-4 pt-3 border-t border-gray-100 flex gap-2 text-xs text-green-700 bg-green-50 p-3 rounded-lg">
+          <div className="mt-4 pt-3 border-t border-gray-100 flex gap-2 text-xs text-papua-green bg-papua-green/10 p-3 rounded-lg">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <p>
               Sistem sedang menampilkan mode <b>Semua Waktu</b>. Angka
@@ -225,7 +225,7 @@ export default function LabaRugiPage() {
           </div>
         )}
         {filterTipe === "bulanan" && (
-          <div className="mt-4 pt-3 border-t border-gray-100 flex gap-2 text-xs text-blue-600 bg-blue-50 p-3 rounded-lg">
+          <div className="mt-4 pt-3 border-t border-gray-100 flex gap-2 text-xs text-papua-primary bg-papua-accent/10 p-3 rounded-lg">
             <Info className="w-4 h-4 shrink-0" />
             <p>
               Anda sedang melihat laporan khusus{" "}
@@ -238,7 +238,7 @@ export default function LabaRugiPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-gray-100 shadow-sm print:hidden">
-          <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+          <RefreshCw className="w-8 h-8 text-papua-accent animate-spin mb-4" />
           <p className="text-gray-500 font-medium">
             Menyesuaikan kalkulasi Laba Rugi...
           </p>
@@ -259,7 +259,7 @@ export default function LabaRugiPage() {
           <div className="p-8 print:p-0 print:pt-6">
             {/* PENDAPATAN */}
             <div className="mb-8">
-              <h4 className="text-base font-bold text-gray-900 border-b-2 border-gray-300 pb-2 mb-4">
+              <h4 className="text-base font-bold text-papua-primary border-b-2 border-gray-300 pb-2 mb-4">
                 PENDAPATAN OPERASIONAL
               </h4>
               <div className="space-y-3">
@@ -272,7 +272,7 @@ export default function LabaRugiPage() {
                       <span className="text-gray-700 font-medium">
                         {akun.nama}
                       </span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-papua-primary">
                         {formatRupiah(akun.calculatedSaldo)}
                       </span>
                     </div>
@@ -284,10 +284,10 @@ export default function LabaRugiPage() {
                 )}
               </div>
               <div className="flex justify-between items-center px-2 mt-4 pt-3 border-t border-gray-200 bg-gray-50 p-2 rounded">
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-papua-primary">
                   Total Pendapatan
                 </span>
-                <span className="font-bold text-green-700 text-base">
+                <span className="font-bold text-papua-green text-base">
                   {formatRupiah(totalPendapatan)}
                 </span>
               </div>
@@ -295,7 +295,7 @@ export default function LabaRugiPage() {
 
             {/* BIAYA */}
             <div className="mb-8">
-              <h4 className="text-base font-bold text-gray-900 border-b-2 border-gray-300 pb-2 mb-4">
+              <h4 className="text-base font-bold text-papua-primary border-b-2 border-gray-300 pb-2 mb-4">
                 BIAYA OPERASIONAL
               </h4>
               <div className="space-y-3">
@@ -308,7 +308,7 @@ export default function LabaRugiPage() {
                       <span className="text-gray-700 font-medium">
                         {akun.nama}
                       </span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-papua-primary">
                         {formatRupiah(akun.calculatedSaldo)}
                       </span>
                     </div>
@@ -320,10 +320,10 @@ export default function LabaRugiPage() {
                 )}
               </div>
               <div className="flex justify-between items-center px-2 mt-4 pt-3 border-t border-gray-200 bg-gray-50 p-2 rounded">
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-papua-primary">
                   Total Biaya Operasional
                 </span>
-                <span className="font-bold text-red-700 text-base">
+                <span className="font-bold text-papua-red text-base">
                   {formatRupiah(totalBiaya)}
                 </span>
               </div>
@@ -331,17 +331,17 @@ export default function LabaRugiPage() {
 
             {/* LABA / RUGI */}
             <div
-              className={`mt-10 p-5 rounded-xl border-2 flex items-center justify-between print:rounded-none print:border-black ${isLaba ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+              className={`mt-10 p-5 rounded-xl border-2 flex items-center justify-between print:rounded-none print:border-black ${isLaba ? "bg-papua-green/10 border-papua-green/30" : "bg-papua-red/10 border-papua-red/30"}`}
             >
               <div className="flex items-center gap-3">
                 {isLaba ? (
-                  <TrendingUp className="w-8 h-8 text-green-600 print:hidden" />
+                  <TrendingUp className="w-8 h-8 text-papua-green print:hidden" />
                 ) : (
-                  <TrendingDown className="w-8 h-8 text-red-600 print:hidden" />
+                  <TrendingDown className="w-8 h-8 text-papua-red print:hidden" />
                 )}
                 <div>
                   <h3
-                    className={`text-sm font-bold uppercase tracking-widest ${isLaba ? "text-green-800" : "text-red-800"} print:text-black`}
+                    className={`text-sm font-bold uppercase tracking-widest ${isLaba ? "text-papua-green" : "text-papua-red"} print:text-black`}
                   >
                     {isLaba
                       ? "LABA BERSIH (NET PROFIT)"
@@ -353,7 +353,7 @@ export default function LabaRugiPage() {
                 </div>
               </div>
               <div
-                className={`text-2xl font-black ${isLaba ? "text-green-700" : "text-red-700"} print:text-black`}
+                className={`text-2xl font-black ${isLaba ? "text-papua-green" : "text-papua-red"} print:text-black`}
               >
                 {formatRupiah(labaBersih)}
               </div>

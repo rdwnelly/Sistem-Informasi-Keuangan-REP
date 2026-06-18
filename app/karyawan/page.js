@@ -147,7 +147,7 @@ export default function KaryawanPage() {
     <div className="max-w-5xl mx-auto pb-12 relative">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-papua-primary">
             Buku Induk Karyawan
           </h1>
           <p className="text-gray-500 mt-1">
@@ -156,7 +156,7 @@ export default function KaryawanPage() {
         </div>
         <button
           onClick={openModalAdd}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
+          className="flex items-center gap-2 bg-papua-primary hover:bg-papua-primary text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
         >
           <Plus className="w-5 h-5" /> Tambah Karyawan
         </button>
@@ -164,7 +164,7 @@ export default function KaryawanPage() {
 
       {status.message && (
         <div
-          className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${status.type === "error" ? "bg-red-50 border-red-200 text-red-700" : "bg-green-50 border-green-200 text-green-700"}`}
+          className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${status.type === "error" ? "bg-papua-red/10 border-papua-red/30 text-papua-red" : "bg-papua-green/10 border-papua-green/30 text-papua-green"}`}
         >
           <AlertCircle className="w-5 h-5" />
           <span className="text-sm font-medium">{status.message}</span>
@@ -175,7 +175,7 @@ export default function KaryawanPage() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50">
           <Users className="w-5 h-5 text-gray-500" />
-          <h2 className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-papua-primary">
             Daftar Karyawan Aktif & Nonaktif
           </h2>
         </div>
@@ -196,7 +196,7 @@ export default function KaryawanPage() {
               {loading ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center">
-                    <RefreshCw className="w-6 h-6 text-blue-500 animate-spin mx-auto" />
+                    <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : karyawanList.length === 0 ? (
@@ -217,7 +217,7 @@ export default function KaryawanPage() {
                     <td className="px-6 py-4 text-center text-gray-400">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4 font-bold text-gray-900">
+                    <td className="px-6 py-4 font-bold text-papua-primary">
                       {karyawan.nama}
                     </td>
                     <td className="px-6 py-4 text-gray-600">
@@ -228,7 +228,7 @@ export default function KaryawanPage() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`px-3 py-1 text-xs font-bold rounded-full border ${karyawan.statusAktif ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}`}
+                        className={`px-3 py-1 text-xs font-bold rounded-full border ${karyawan.statusAktif ? "bg-papua-green/10 text-papua-green border-papua-green/30" : "bg-papua-red/10 text-papua-red border-papua-red/30"}`}
                       >
                         {karyawan.statusAktif ? "AKTIF" : "NONAKTIF"}
                       </span>
@@ -236,7 +236,7 @@ export default function KaryawanPage() {
                     <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
                       <button
                         onClick={() => openModalEdit(karyawan)}
-                        className="p-2 text-gray-400 hover:text-blue-600 bg-white border border-gray-200 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-papua-primary bg-white border border-gray-200 hover:bg-papua-accent/10 rounded-lg transition-colors"
                         title="Edit Data"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -249,7 +249,7 @@ export default function KaryawanPage() {
                             karyawan.nama,
                           )
                         }
-                        className={`p-2 border rounded-lg transition-colors ${karyawan.statusAktif ? "text-gray-400 hover:text-red-600 hover:bg-red-50 border-gray-200" : "text-gray-400 hover:text-green-600 hover:bg-green-50 border-gray-200"}`}
+                        className={`p-2 border rounded-lg transition-colors ${karyawan.statusAktif ? "text-gray-400 hover:text-papua-red hover:bg-papua-red/10 border-gray-200" : "text-gray-400 hover:text-papua-green hover:bg-papua-green/10 border-gray-200"}`}
                         title={
                           karyawan.statusAktif
                             ? "Nonaktifkan Karyawan"
@@ -276,7 +276,7 @@ export default function KaryawanPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-papua-primary">
                 {isEditing ? "Edit Data Karyawan" : "Tambah Karyawan Baru"}
               </h2>
               <button
@@ -299,7 +299,7 @@ export default function KaryawanPage() {
                   value={formData.nama}
                   onChange={handleInputChange}
                   placeholder="Contoh: ROSELINA MAYOR"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary uppercase"
                 />
               </div>
 
@@ -314,7 +314,7 @@ export default function KaryawanPage() {
                   value={formData.jabatan}
                   onChange={handleInputChange}
                   placeholder="Contoh: Karyawan"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
                 />
               </div>
 
@@ -329,7 +329,7 @@ export default function KaryawanPage() {
                   min="0"
                   value={formData.gajiPokok}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function KaryawanPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                  className="flex-1 px-4 py-2.5 bg-papua-primary text-white rounded-lg font-bold hover:bg-papua-primary transition-colors shadow-sm"
                 >
                   {isEditing ? "Simpan Perubahan" : "Simpan Karyawan"}
                 </button>

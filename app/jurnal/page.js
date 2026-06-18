@@ -33,10 +33,6 @@ const KATEGORI_AKUN = [
       "KAS",
       "INVESTASI",
       "PERSEDIAAN TOKO",
-      "Piutang Nikel Wanma",
-      "Piutang Mitshi Wanma",
-      "Piutang Rose Mayor",
-      "Piutang Christian Wanma",
     ],
   },
   {
@@ -282,7 +278,7 @@ export default function JurnalUmumPage() {
     <div className="max-w-5xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-papua-primary">
             Jurnal Umum & Saldo
           </h1>
           <p className="text-gray-500 mt-1">
@@ -299,7 +295,7 @@ export default function JurnalUmumPage() {
 
       {status.message && (
         <div
-          className={`p-4 rounded-lg mb-6 flex items-start gap-3 border ${status.type === "error" ? "bg-red-50 border-red-200 text-red-700" : status.type === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}
+          className={`p-4 rounded-lg mb-6 flex items-start gap-3 border ${status.type === "error" ? "bg-papua-red/10 border-papua-red/30 text-papua-red" : status.type === "success" ? "bg-papua-green/10 border-papua-green/30 text-papua-green" : "bg-papua-accent/10 border-papua-accent/20 text-papua-primary"}`}
         >
           {status.type === "error" ? (
             <AlertCircle className="w-5 h-5 shrink-0" />
@@ -314,13 +310,13 @@ export default function JurnalUmumPage() {
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl mb-6 max-w-md">
         <button
           onClick={() => setActiveTab("transaksi")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === "transaksi" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === "transaksi" ? "bg-white text-papua-primary shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
         >
           <BookOpen className="w-4 h-4" /> Transaksi Rutin
         </button>
         <button
           onClick={() => setActiveTab("saldo_awal")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === "saldo_awal" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === "saldo_awal" ? "bg-white text-papua-primary shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
         >
           <Wallet className="w-4 h-4" /> Input Saldo Awal
         </button>
@@ -330,7 +326,7 @@ export default function JurnalUmumPage() {
       {activeTab === "saldo_awal" && (
         <div className="bg-gradient-to-br from-indigo-50 to-white rounded-xl border border-indigo-100 shadow-sm p-6 mb-8">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-papua-primary flex items-center gap-2">
               <Wallet className="w-5 h-5 text-indigo-600" /> Pengisian Saldo
               Awal (Single-Entry)
             </h2>
@@ -473,7 +469,7 @@ export default function JurnalUmumPage() {
                   required
                   value={formData.tanggal}
                   onChange={handleTransaksiChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-papua-primary outline-none text-sm"
                 />
               </div>
               <div className="space-y-2">
@@ -488,7 +484,7 @@ export default function JurnalUmumPage() {
                   placeholder="Contoh: 150000"
                   value={formData.nominal}
                   onChange={handleTransaksiChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-papua-primary outline-none text-sm"
                 />
               </div>
               <div className="md:col-span-2 space-y-2">
@@ -502,7 +498,7 @@ export default function JurnalUmumPage() {
                   placeholder="Contoh: Pembelian bahan baku Yaswar Cafe"
                   value={formData.keterangan}
                   onChange={handleTransaksiChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-papua-primary outline-none text-sm"
                 />
               </div>
               <div className="space-y-2">
@@ -514,7 +510,7 @@ export default function JurnalUmumPage() {
                   required
                   value={formData.akunDebit}
                   onChange={handleTransaksiChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-papua-primary outline-none text-sm bg-white"
                 >
                   <option value="">-- Pilih Akun Debit --</option>
                   {KATEGORI_AKUN.map((kategori, idx) => (
@@ -537,7 +533,7 @@ export default function JurnalUmumPage() {
                   required
                   value={formData.akunKredit}
                   onChange={handleTransaksiChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-papua-primary outline-none text-sm bg-white"
                 >
                   <option value="">-- Pilih Akun Kredit --</option>
                   {KATEGORI_AKUN.map((kategori, idx) => (
@@ -569,12 +565,12 @@ export default function JurnalUmumPage() {
       {/* TABEL RIWAYAT TERAKHIR */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <h2 className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-papua-primary">
             Riwayat Jurnal Terakhir
           </h2>
           <button
             onClick={fetchRiwayat}
-            className="text-gray-500 hover:text-blue-600 transition-colors"
+            className="text-gray-500 hover:text-papua-primary transition-colors"
           >
             <RefreshCw
               className={`w-5 h-5 ${loadingRiwayat ? "animate-spin" : ""}`}
@@ -599,7 +595,7 @@ export default function JurnalUmumPage() {
                     <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                       {formatTanggal(trx.tanggal)}
                     </td>
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-6 py-4 font-medium text-papua-primary">
                       {trx.keterangan}
                       {trx.isSingleEntry && (
                         <span className="ml-2 inline-block px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">
@@ -609,7 +605,7 @@ export default function JurnalUmumPage() {
                     </td>
                     <td className="px-6 py-4 space-y-1">
                       {trx.akunDebit && (
-                        <div className="text-xs text-blue-700 font-medium truncate max-w-[200px]">
+                        <div className="text-xs text-papua-primary font-medium truncate max-w-[200px]">
                           D: {trx.akunDebit.nama}
                         </div>
                       )}
@@ -619,14 +615,14 @@ export default function JurnalUmumPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-gray-900 whitespace-nowrap">
+                    <td className="px-6 py-4 text-right font-bold text-papua-primary whitespace-nowrap">
                       {formatRupiah(trx.nominal)}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleDelete(trx.id, trx.keterangan)}
                         disabled={status.loading}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        className="p-2 text-gray-400 hover:text-papua-red hover:bg-papua-red/10 rounded-lg transition-colors disabled:opacity-50"
                       >
                         <Trash2 className="w-5 h-5 mx-auto" />
                       </button>
