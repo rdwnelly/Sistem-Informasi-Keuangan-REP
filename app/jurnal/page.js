@@ -36,6 +36,17 @@ const KATEGORI_AKUN = [
     ],
   },
   {
+    tipe: "Piutang",
+    akun: [
+      "PIUTANG Christian Wanma",
+      "PIUTANG Mitshi Wanma",
+      "PIUTANG Nikel Wanma",
+      "PIUTANG Rose Mayor",
+      "PIUTANG USAHA",
+      "PIUTANG LAIN-LAIN",
+    ],
+  },
+  {
     tipe: "Hutang",
     akun: [
       "Hutang Dagang Jayapura",

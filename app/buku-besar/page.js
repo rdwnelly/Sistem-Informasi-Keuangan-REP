@@ -58,7 +58,7 @@ export default function BukuBesarPage() {
         if (trx.akunDebit && mapAkun[trx.akunDebit.nama]) {
           const namaAkun = trx.akunDebit.nama;
           const tipe = mapAkun[namaAkun].tipe;
-          if (["Aset", "Biaya"].includes(tipe) || namaAkun.toUpperCase().includes("KAS")) {
+          if (["Aset", "Piutang", "Biaya"].includes(tipe) || namaAkun.toUpperCase().includes("KAS")) {
             mapAkun[namaAkun].calculatedSaldo += nominal; // Normal Balance Debit
           } else {
             mapAkun[namaAkun].calculatedSaldo -= nominal; // Mengurangi Kredit
@@ -69,7 +69,7 @@ export default function BukuBesarPage() {
         if (trx.akunKredit && mapAkun[trx.akunKredit.nama]) {
           const namaAkun = trx.akunKredit.nama;
           const tipe = mapAkun[namaAkun].tipe;
-          if (["Aset", "Biaya"].includes(tipe) || namaAkun.toUpperCase().includes("KAS")) {
+          if (["Aset", "Piutang", "Biaya"].includes(tipe) || namaAkun.toUpperCase().includes("KAS")) {
             mapAkun[namaAkun].calculatedSaldo -= nominal; // Mengurangi Debit
           } else {
             mapAkun[namaAkun].calculatedSaldo += nominal; // Normal Balance Kredit
@@ -107,7 +107,7 @@ export default function BukuBesarPage() {
   }, {});
 
   // Urutan render sesuai standar Laporan Keuangan Yayasan
-  const orderTipe = ["Aset", "Hutang", "Modal", "Pendapatan", "Biaya"];
+  const orderTipe = ["Aset", "Piutang", "Hutang", "Modal", "Pendapatan", "Biaya"];
 
   const handleExportCSV = () => {
     const dataEkspor = [];
