@@ -79,7 +79,7 @@ export default function NeracaSaldoPage() {
         // Proses Sisi Debit
         if (mapAkun[dName]) {
           const tipe = mapAkun[dName].tipe;
-          if (["Aset", "Piutang", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
+          if (["Aset", "Piutang", "Biaya"].includes(tipe) || dName.toUpperCase().includes("KAS")) {
             mapAkun[dName].calculatedSaldo += nominal; // Normal Balance Debit
           } else {
             mapAkun[dName].calculatedSaldo -= nominal; // Mengurangi Kredit
@@ -89,7 +89,7 @@ export default function NeracaSaldoPage() {
         // Proses Sisi Kredit
         if (mapAkun[kName]) {
           const tipe = mapAkun[kName].tipe;
-          if (["Aset", "Piutang", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
+          if (["Aset", "Piutang", "Biaya"].includes(tipe) || kName.toUpperCase().includes("KAS")) {
             mapAkun[kName].calculatedSaldo -= nominal; // Mengurangi Debit
           } else {
             mapAkun[kName].calculatedSaldo += nominal; // Normal Balance Kredit

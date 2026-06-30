@@ -24,8 +24,6 @@ export default function PengaturanPage() {
   const [bulanHapus, setBulanHapus] = useState(new Date().getMonth() + 1);
   const [tahunHapus, setTahunHapus] = useState(new Date().getFullYear());
   const [hapusJurnal, setHapusJurnal] = useState(true);
-  const [hapusPanjar, setHapusPanjar] = useState(true);
-  const [hapusGaji, setHapusGaji] = useState(true);
 
   // Kalimat validasi mutlak yang harus diketik user
   const REQUIRED_CONFIRM_TEXT = "SAYA YAKIN HAPUS DATA REP";
@@ -55,8 +53,6 @@ export default function PengaturanPage() {
     try {
       const targetCollections = [];
       if (hapusJurnal) targetCollections.push("jurnal");
-      if (hapusPanjar) targetCollections.push("panjar");
-      if (hapusGaji) targetCollections.push("gaji_bulanan");
 
       if (targetCollections.length === 0) {
         setStatus({ type: "error", message: "Pilih minimal satu jenis data untuk dihapus." });
@@ -241,25 +237,7 @@ export default function PengaturanPage() {
                     onChange={(e) => setHapusJurnal(e.target.checked)}
                     className="w-4 h-4 text-papua-red rounded focus:ring-papua-red"
                   />
-                  Jurnal Umum
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hapusPanjar}
-                    onChange={(e) => setHapusPanjar(e.target.checked)}
-                    className="w-4 h-4 text-papua-red rounded focus:ring-papua-red"
-                  />
-                  Panjar
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hapusGaji}
-                    onChange={(e) => setHapusGaji(e.target.checked)}
-                    className="w-4 h-4 text-papua-red rounded focus:ring-papua-red"
-                  />
-                  Gaji Bulanan
+                  Buku Besar & Laporan Keuangan (Jurnal Umum)
                 </label>
               </div>
             </div>

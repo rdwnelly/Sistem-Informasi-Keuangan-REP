@@ -21,6 +21,7 @@ import {
   Settings,
   LogOut,
   X,
+  Info,
 } from "lucide-react";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -178,6 +179,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </div>
 
         <div className="p-4 border-t border-white/10 relative z-10">
+          <Link
+            href="/tentang"
+            className={
+              baseClass + "text-white/70 hover:bg-white/10 hover:text-white"
+            }
+          >
+            <Info className="w-5 h-5" />
+            Tentang Aplikasi
+          </Link>
           <Link
             href="/pengaturan"
             className={

@@ -82,26 +82,26 @@ export default function LaporanKeuanganSAKPage() {
         const nominal = Number(trx.nominal) || 0;
         
         // Safely extract names since akunDebit/akunKredit might be objects or strings
-        const debitName = typeof trx.akunDebit === 'object' ? (trx.akunDebit?.nama || "") : (String(trx.akunDebit || ""));
-        const kreditName = typeof trx.akunKredit === 'object' ? (trx.akunKredit?.nama || "") : (String(trx.akunKredit || ""));
+        const dName = typeof trx.akunDebit === 'object' ? (trx.akunDebit?.nama || "") : (String(trx.akunDebit || ""));
+        const kName = typeof trx.akunKredit === 'object' ? (trx.akunKredit?.nama || "") : (String(trx.akunKredit || ""));
 
         // Proses Sisi Debit
-        if (mapAkun[debitName]) {
-          const tipe = mapAkun[debitName].tipe;
-          if (["Aset", "Piutang", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
-            mapAkun[debitName].calculatedSaldo += nominal; // Normal Balance Debit
+        if (mapAkun[dName]) {
+          const tipe = mapAkun[dName].tipe;
+          if (["Aset", "Piutang", "Biaya"].includes(tipe) || dName.toUpperCase().includes("KAS")) {
+            mapAkun[dName].calculatedSaldo += nominal; // Normal Balance Debit
           } else {
-            mapAkun[debitName].calculatedSaldo -= nominal; // Mengurangi Kredit
+            mapAkun[dName].calculatedSaldo -= nominal; // Mengurangi Kredit
           }
         }
 
         // Proses Sisi Kredit
-        if (mapAkun[kreditName]) {
-          const tipe = mapAkun[kreditName].tipe;
-          if (["Aset", "Piutang", "Biaya"].includes(tipe) || (trx.akunDebit?.nama?.toUpperCase().includes("KAS") || trx.akunKredit?.nama?.toUpperCase().includes("KAS"))) {
-            mapAkun[kreditName].calculatedSaldo -= nominal; // Mengurangi Debit
+        if (mapAkun[kName]) {
+          const tipe = mapAkun[kName].tipe;
+          if (["Aset", "Piutang", "Biaya"].includes(tipe) || kName.toUpperCase().includes("KAS")) {
+            mapAkun[kName].calculatedSaldo -= nominal; // Mengurangi Debit
           } else {
-            mapAkun[kreditName].calculatedSaldo += nominal; // Normal Balance Kredit
+            mapAkun[kName].calculatedSaldo += nominal; // Normal Balance Kredit
           }
         }
       });
