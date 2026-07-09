@@ -18,12 +18,16 @@ import {
   Save,
   X,
   Plus,
+  Send,
 } from "lucide-react";
+import html2canvas from "html2canvas-pro";
+import { jsPDF } from "jspdf";
 
 export default function RekapanGajiPage() {
   const [dataRekapan, setDataRekapan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState({ type: "", message: "" });
+  const [isSendingWa, setIsSendingWa] = useState(false);
 
   const dateNow = new Date();
   const [bulan, setBulan] = useState(dateNow.getMonth() + 1);
@@ -146,6 +150,7 @@ export default function RekapanGajiPage() {
             panjar: totalPanjarBulanIni,
             namaKaryawan: karyawan.nama,
             hariHadir: tersimpan.hariHadir || 28,
+            noHp: karyawan.noHp || tersimpan.noHp || "",
           };
         }
 
@@ -164,6 +169,7 @@ export default function RekapanGajiPage() {
           panjar: totalPanjarBulanIni,
           tidakHadir: 0,
           isSaved: false,
+          noHp: karyawan.noHp || "",
         };
       });
 
@@ -261,6 +267,76 @@ export default function RekapanGajiPage() {
   const handleCetakSlip = (data) => {
     setDataCetakList([data]);
     setTimeout(() => window.print(), 500);
+  };
+
+  const handleKirimWA = async (data) => {
+    const defaultNoHp = data.noHp || "";
+    const noHp = window.prompt(`Masukkan Nomor WA untuk ${data.namaKaryawan} (Contoh: 08123... / 628123...):`, defaultNoHp);
+    if (!noHp) return; // User cancel
+
+    setIsSendingWa(true);
+    setStatus({ type: "success", message: "Memproses slip gaji & mengirim ke WA..." });
+    try {
+      // Tampilkan elemen slip-container untuk dirender (kita gunakan dataCetakList)
+      setDataCetakList([data]);
+      
+      // Tunggu DOM update
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      const slipElement = document.querySelector('.slip-container');
+      if (!slipElement) throw new Error('Gagal merender slip gaji untuk PDF');
+
+      // Manipulasi sementara agar bisa dicapture html2canvas
+      const cetakArea = slipElement.parentElement;
+      const originalClasses = cetakArea.className;
+      cetakArea.className = "print:block font-sans text-black bg-white w-full fixed top-0 left-[-9999px] z-[-1]";
+
+      // Buat canvas
+      const canvas = await html2canvas(slipElement, { scale: 2, useCORS: true });
+      
+      // Kembalikan styling seperti semula
+      cetakArea.className = originalClasses;
+      // Bersihkan layar
+      setDataCetakList([]);
+
+      // Buat PDF
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      
+      const pdfBase64Data = pdf.output('datauristring');
+      const base64String = pdfBase64Data.split(',')[1];
+      const namaBulanArr = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+      // Kirim ke API Bot
+      const response = await fetch('http://localhost:3001/api/kirim-slip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nomor: noHp,
+          pesan: `Halo ${data.namaKaryawan}, berikut adalah dokumen Slip Gaji Anda untuk periode ${namaBulanArr[bulan - 1]} ${tahun}. Terima kasih!`,
+          fileName: `Slip_Gaji_${data.namaKaryawan.replace(/ /g, '_')}_${namaBulanArr[bulan - 1]}_${tahun}.pdf`,
+          pdfBase64: base64String
+        })
+      });
+
+      const result = await response.json();
+      if(response.ok) {
+        setStatus({ type: "success", message: `Slip gaji berhasil dikirim ke WhatsApp ${data.namaKaryawan}!` });
+      } else {
+        throw new Error(result.error || 'Gagal mengirim pesan dari Bot');
+      }
+
+    } catch (error) {
+      console.error(error);
+      setStatus({ type: "error", message: `Gagal mengirim WA: ${error.message}` });
+      setDataCetakList([]); // Pastikan layar bersih jika error
+    } finally {
+      setIsSendingWa(false);
+      setTimeout(() => setStatus({ type: "", message: "" }), 5000);
+    }
   };
 
   const handleCetakSemua = () => {
@@ -456,6 +532,14 @@ export default function RekapanGajiPage() {
                             className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded text-xs font-bold transition-colors disabled:opacity-30 flex items-center gap-1 border border-gray-300"
                           >
                             <Printer className="w-3 h-3" /> Cetak
+                          </button>
+
+                          <button
+                            onClick={() => handleKirimWA(data)}
+                            disabled={!data.isSaved || isSendingWa}
+                            className="px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs font-bold transition-colors disabled:opacity-30 flex items-center gap-1 border border-green-300"
+                          >
+                            <Send className="w-3 h-3" /> {isSendingWa ? 'Mengirim...' : 'WA'}
                           </button>
                         </td>
                       </tr>

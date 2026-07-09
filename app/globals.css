@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAFAFA;
+  --foreground: #4E342E;
 }
 
 @theme inline {
@@ -10,24 +10,41 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter), sans-serif;
   --font-serif: var(--font-lora), serif;
-  --color-papua-primary: #4E342E;
-  --color-papua-accent: #FBC02D;
-  --color-papua-green: #2E7D32;
-  --color-papua-red: #C62828;
-  --color-papua-bg: #FAFAFA;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Palet Warna Nuansa Papua - Earthy & Kultural */
+  --color-papua-primary: #4E342E;
+  --color-papua-primary-light: #5D4037;
+  --color-papua-primary-dark: #3E2723;
+
+  --color-papua-accent: #FBC02D;
+  --color-papua-accent-light: #FFF59D;
+  --color-papua-accent-dark: #F57F17;
+
+  --color-papua-green: #2E7D32;
+  --color-papua-green-light: #4CAF50;
+  --color-papua-green-dark: #1B5E20;
+
+  --color-papua-red: #C62828;
+  --color-papua-red-light: #EF5350;
+  --color-papua-red-dark: #B71C1C;
+
+  --color-papua-bg: #FAFAFA;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-serif {
+  font-family: var(--font-lora), serif;
 }
 
 /* Responsive base font-size for better scaling on small devices */
@@ -51,13 +68,22 @@ html {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Accessible focus helper */
 .focus-ring:focus {
-  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline: 2px solid var(--color-papua-accent);
   outline-offset: 2px;
+}
+
+/* Custom Motif Etnik Papua Background */
+.bg-papua-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 0L30 15L15 30L0 15Z' fill='currentColor' fill-opacity='0.03'/%3E%3Cpath d='M15 10L20 15L15 20L10 15Z' fill='currentColor' fill-opacity='0.05'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }

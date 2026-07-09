@@ -94,14 +94,14 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   ];
 
   const baseClass =
-    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ";
+    "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium ";
 
   return (
     <>
       {/* Overlay for mobile when sidebar is open */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setIsOpen && setIsOpen(false)}
           aria-hidden="true"
         />
@@ -113,26 +113,24 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         aria-hidden={!isOpen}
         className={`
           w-[min(16rem,80vw)] md:w-64 bg-papua-primary text-white h-screen fixed left-0 top-0 flex flex-col z-50
-          transform transition-transform duration-300 ease-in-out shadow-xl md:shadow-none overflow-hidden
+          transform transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none overflow-hidden border-r border-papua-primary-dark/50
           ${isOpen ? "translate-x-0" : "-translate-x-full"} 
           md:translate-x-0
         `}
       >
-        <div className="absolute inset-x-0 bottom-0 h-64 bg-[url('/papua_motif_watermark.png')] bg-repeat opacity-5 pointer-events-none"></div>
-        <div className="p-6 border-b border-white/10 flex justify-between items-center relative z-10">
+        <div className="absolute inset-0 bg-papua-pattern pointer-events-none mix-blend-overlay"></div>
+        <div className="p-6 border-b border-white/10 flex justify-between items-center relative z-10 bg-papua-primary-dark/30">
           <div className="flex items-center gap-3">
             <img
               src="/logo.jpg"
               alt="REP Logo"
-              className="w-10 h-10 rounded-md object-cover"
+              className="w-10 h-10 rounded-md object-cover border-2 border-papua-accent/50 shadow-sm"
             />
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">
-                Sistem Informasi Keuangan REP
+              <h1 className="text-lg font-serif font-bold text-white tracking-tight leading-tight">
+                Sistem Informasi
+                <span className="block text-papua-accent">Keuangan REP</span>
               </h1>
-              <p className="text-xs text-white/60 mt-1">
-                Yayasan Rumah Etnik Papua
-              </p>
             </div>
           </div>
 
@@ -141,7 +139,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ref={closeBtnRef}
             onClick={() => setIsOpen && setIsOpen(false)}
             aria-label="Tutup menu"
-            className="md:hidden p-2 text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
+            className="md:hidden p-2 text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-colors focus-ring"
           >
             <X className="w-5 h-5" />
           </button>
@@ -150,7 +148,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-hide relative z-10">
           {menuGroups.map((group, index) => (
             <div key={index}>
-              <p className="px-4 text-xs font-semibold text-papua-accent/60 uppercase tracking-wider mb-2">
+              <p className="px-4 text-xs font-semibold text-papua-accent/80 uppercase tracking-wider mb-2">
                 {group.title}
               </p>
               <ul className="space-y-1">
@@ -163,8 +161,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                         className={
                           baseClass +
                           (isActive
-                            ? "bg-papua-accent/20 text-papua-accent"
-                            : "text-white/70 hover:bg-white/10 hover:text-white")
+                            ? "bg-papua-accent text-papua-primary font-bold shadow-md shadow-papua-accent/20"
+                            : "text-white/80 hover:bg-papua-primary-light hover:text-white")
                         }
                       >
                         <item.icon className="w-5 h-5" />
@@ -178,11 +176,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           ))}
         </div>
 
-        <div className="p-4 border-t border-white/10 relative z-10">
+        <div className="p-4 border-t border-white/10 relative z-10 bg-papua-primary-dark/20">
           <Link
             href="/tentang"
             className={
-              baseClass + "text-white/70 hover:bg-white/10 hover:text-white"
+              baseClass + "text-white/80 hover:bg-papua-primary-light hover:text-white"
             }
           >
             <Info className="w-5 h-5" />
@@ -191,7 +189,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           <Link
             href="/pengaturan"
             className={
-              baseClass + "text-white/70 hover:bg-white/10 hover:text-white"
+              baseClass + "text-white/80 hover:bg-papua-primary-light hover:text-white"
             }
           >
             <Settings className="w-5 h-5" />
@@ -199,7 +197,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           </Link>
           <button
             onClick={logout}
-            className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium text-papua-red hover:bg-papua-red/20"
+            className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium text-papua-red-light hover:bg-papua-red hover:text-white shadow-sm"
           >
             <LogOut className="w-5 h-5" />
             Keluar Sistem

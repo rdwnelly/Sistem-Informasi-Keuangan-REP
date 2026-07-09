@@ -18,6 +18,7 @@ import {
   AlertCircle,
   RefreshCw,
   X,
+  Eye,
 } from "lucide-react";
 
 export default function KaryawanPage() {
@@ -33,7 +34,14 @@ export default function KaryawanPage() {
     nama: "",
     jabatan: "Karyawan",
     gajiPokok: 2100000,
+    noHp: "",
+    rekeningBank: "",
+    tanggalLahir: "",
+    alamat: "",
   });
+
+  const [isModalDetailOpen, setIsModalDetailOpen] = useState(false);
+  const [selectedKaryawan, setSelectedKaryawan] = useState(null);
 
   const fetchKaryawan = useCallback(async () => {
     setLoading(true);
@@ -62,12 +70,12 @@ export default function KaryawanPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "gajiPokok" ? Number(value) : value.toUpperCase(), // Nama selalu kapital
+      [name]: name === "gajiPokok" ? Number(value) : (name === "nama" ? value.toUpperCase() : value),
     }));
   };
 
   const openModalAdd = () => {
-    setFormData({ nama: "", jabatan: "Karyawan", gajiPokok: 2100000 });
+    setFormData({ nama: "", jabatan: "Karyawan", gajiPokok: 2100000, noHp: "", rekeningBank: "", tanggalLahir: "", alamat: "" });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -77,6 +85,10 @@ export default function KaryawanPage() {
       nama: karyawan.nama,
       jabatan: karyawan.jabatan,
       gajiPokok: karyawan.gajiPokok,
+      noHp: karyawan.noHp || "",
+      rekeningBank: karyawan.rekeningBank || "",
+      tanggalLahir: karyawan.tanggalLahir || "",
+      alamat: karyawan.alamat || "",
     });
     setEditId(karyawan.id);
     setIsEditing(true);
@@ -94,6 +106,10 @@ export default function KaryawanPage() {
           nama: formData.nama,
           jabatan: formData.jabatan,
           gajiPokok: formData.gajiPokok,
+          noHp: formData.noHp,
+          rekeningBank: formData.rekeningBank,
+          tanggalLahir: formData.tanggalLahir,
+          alamat: formData.alamat,
           updatedAt: serverTimestamp(),
         });
         setStatus({
@@ -105,6 +121,10 @@ export default function KaryawanPage() {
           nama: formData.nama,
           jabatan: formData.jabatan,
           gajiPokok: formData.gajiPokok,
+          noHp: formData.noHp,
+          rekeningBank: formData.rekeningBank,
+          tanggalLahir: formData.tanggalLahir,
+          alamat: formData.alamat,
           statusAktif: true,
           createdAt: serverTimestamp(),
         });
@@ -142,6 +162,11 @@ export default function KaryawanPage() {
       currency: "IDR",
       minimumFractionDigits: 0,
     }).format(angka);
+
+  const openModalDetail = (karyawan) => {
+    setSelectedKaryawan(karyawan);
+    setIsModalDetailOpen(true);
+  };
 
   return (
     <div className="max-w-5xl mx-auto pb-12 relative">
@@ -234,6 +259,13 @@ export default function KaryawanPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => openModalDetail(karyawan)}
+                        className="p-2 text-gray-400 hover:text-blue-500 bg-white border border-gray-200 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Detail Karyawan"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => openModalEdit(karyawan)}
                         className="p-2 text-gray-400 hover:text-papua-primary bg-white border border-gray-200 hover:bg-papua-accent/10 rounded-lg transition-colors"
@@ -333,6 +365,61 @@ export default function KaryawanPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Nomor HP (Contoh: 081234567890)
+                </label>
+                <input
+                  type="text"
+                  name="noHp"
+                  value={formData.noHp}
+                  onChange={handleInputChange}
+                  placeholder="Opsional"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Rekening Bank (Nama Bank - Nomor Rekening)
+                </label>
+                <input
+                  type="text"
+                  name="rekeningBank"
+                  value={formData.rekeningBank}
+                  onChange={handleInputChange}
+                  placeholder="Opsional, cth: BCA - 123456789"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Tanggal Lahir
+                </label>
+                <input
+                  type="date"
+                  name="tanggalLahir"
+                  value={formData.tanggalLahir}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Alamat Lengkap
+                </label>
+                <textarea
+                  name="alamat"
+                  value={formData.alamat}
+                  onChange={handleInputChange}
+                  placeholder="Opsional"
+                  rows={2}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary resize-none"
+                />
+              </div>
+
               <div className="pt-4 flex gap-3">
                 <button
                   type="button"
@@ -349,6 +436,71 @@ export default function KaryawanPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DETAIL KARYAWAN */}
+      {isModalDetailOpen && selectedKaryawan && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
+              <h2 className="text-lg font-bold text-papua-primary">Detail Karyawan</h2>
+              <button
+                onClick={() => setIsModalDetailOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Nama Lengkap</p>
+                <p className="text-sm font-semibold text-gray-800">{selectedKaryawan.nama}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 font-bold uppercase mb-1">Jabatan</p>
+                  <p className="text-sm font-semibold text-gray-800">{selectedKaryawan.jabatan}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-bold uppercase mb-1">Status</p>
+                  <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${selectedKaryawan.statusAktif ? "bg-papua-green/10 text-papua-green" : "bg-papua-red/10 text-papua-red"}`}>
+                    {selectedKaryawan.statusAktif ? "AKTIF" : "NONAKTIF"}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Gaji Pokok</p>
+                <p className="text-sm font-semibold text-papua-primary">{formatRupiah(selectedKaryawan.gajiPokok)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Nomor HP</p>
+                <p className="text-sm font-semibold text-gray-800">{selectedKaryawan.noHp || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Rekening Bank</p>
+                <p className="text-sm font-semibold text-gray-800">{selectedKaryawan.rekeningBank || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Tanggal Lahir</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  {selectedKaryawan.tanggalLahir ? new Date(selectedKaryawan.tanggalLahir).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-bold uppercase mb-1">Alamat Lengkap</p>
+                <p className="text-sm font-semibold text-gray-800">{selectedKaryawan.alamat || "-"}</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setIsModalDetailOpen(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-bold transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}

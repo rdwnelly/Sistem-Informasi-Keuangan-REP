@@ -42,16 +42,16 @@ function LayoutWrapper({ children }) {
 
   // Jangan tampilkan navigasi di halaman login
   if (pathname === "/login") {
-    return <main className="min-h-screen bg-gray-50">{children}</main>;
+    return <main className="min-h-screen bg-papua-bg">{children}</main>;
   }
 
   // Tampilkan loading state saat mengecek auth
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <main className="min-h-screen bg-papua-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-papua-accent/20 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Memuat...</p>
+          <div className="w-12 h-12 border-4 border-papua-accent/20 border-t-papua-accent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-papua-primary font-medium">Memuat...</p>
         </div>
       </main>
     );
@@ -61,11 +61,11 @@ function LayoutWrapper({ children }) {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-papua-bg">
       {/* Overlay Gelap: Muncul di HP saat menu samping terbuka, klik untuk menutup */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-gray-900/50 z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-papua-primary-dark/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -74,20 +74,24 @@ function LayoutWrapper({ children }) {
       <Sidebar isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
 
       {/* Konten Utama: ml-0 di HP (full), ml-64 di desktop (menyisakan ruang sidebar) */}
-      <div className="flex-1 flex flex-col md:ml-64 min-h-screen w-full transition-all duration-300 ease-in-out">
+      <div className="flex-1 flex flex-col md:ml-64 min-h-screen w-full transition-all duration-300 ease-in-out relative">
+        {/* Decorative subtle top border/motif */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-papua-pattern opacity-30 pointer-events-none"></div>
+        
         {/* Header Khusus Mobile (Disembunyikan di Desktop) */}
-        <header className="bg-white border-b border-gray-200 p-3 flex items-center justify-between md:hidden sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-3">
+        <header className="bg-papua-bg border-b border-papua-primary/10 p-3 flex items-center justify-between md:hidden sticky top-0 z-30 shadow-sm relative">
+          <div className="absolute inset-0 bg-papua-pattern opacity-5 pointer-events-none mix-blend-overlay"></div>
+          <div className="flex items-center gap-3 relative z-10">
             <img
               src="/logo.jpg"
               alt="REP Logo"
-              className="w-8 h-8 rounded-md object-cover"
+              className="w-8 h-8 rounded-md object-cover border border-papua-primary/20"
             />
-            <span className="font-bold text-papua-primary text-sm truncate max-w-[160px]">
-              Sistem Informasi Keuangan REP
+            <span className="font-serif font-bold text-papua-primary text-sm truncate max-w-[160px]">
+              Sistem Informasi Keuangan
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative z-10">
             {deferredPrompt && (
               <button
                 onClick={async () => {
@@ -103,7 +107,7 @@ function LayoutWrapper({ children }) {
                     console.warn("PWA install prompt error:", err);
                   }
                 }}
-                className="px-3 py-1.5 bg-papua-accent/10 text-papua-primary rounded-md text-sm font-medium"
+                className="px-3 py-1.5 bg-papua-accent/20 text-papua-primary rounded-md text-sm font-medium hover:bg-papua-accent transition-colors"
               >
                 Install
               </button>
@@ -111,7 +115,7 @@ function LayoutWrapper({ children }) {
 
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 bg-gray-50 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-papua-primary transition-colors"
+              className="p-2 bg-white rounded-lg text-papua-primary border border-papua-primary/10 hover:bg-papua-primary/5 transition-colors shadow-sm focus-ring"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -119,13 +123,13 @@ function LayoutWrapper({ children }) {
         </header>
 
         {showInstallSuccess && (
-          <div className="fixed right-4 top-16 z-50 bg-papua-green text-white px-4 py-2 rounded shadow">
+          <div className="fixed right-4 top-16 z-50 bg-papua-green text-white px-4 py-2 rounded shadow-md border border-papua-green-light">
             Aplikasi berhasil diinstal
           </div>
         )}
 
         {/* Area Render Halaman: Padding responsif dan izinkan overflow-x untuk tabel lebar */}
-        <main className="flex-1 px-4 sm:px-6 md:px-8 py-4 md:py-6 w-full max-w-full overflow-x-hidden">
+        <main className="flex-1 px-4 sm:px-6 md:px-8 py-4 md:py-6 w-full max-w-full overflow-x-hidden relative z-10">
           {children}
         </main>
       </div>
