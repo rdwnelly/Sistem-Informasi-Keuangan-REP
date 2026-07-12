@@ -19,6 +19,14 @@ import {
   RefreshCw,
   X,
   Eye,
+  User,
+  Briefcase,
+  Phone,
+  CreditCard,
+  Calendar,
+  MapPin,
+  Save,
+  UserPlus
 } from "lucide-react";
 
 export default function KaryawanPage() {
@@ -315,134 +323,170 @@ export default function KaryawanPage() {
 
       {/* MODAL FORM TAMBAH/EDIT */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h2 className="text-lg font-bold text-papua-primary">
-                {isEditing ? "Edit Data Karyawan" : "Tambah Karyawan Baru"}
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsModalOpen(false)}
+          />
+          <div className="relative bg-white rounded-2xl w-full max-w-xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-gradient-to-r from-papua-primary to-gray-900 px-6 py-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg shadow-inner">
+                  {isEditing ? <Edit2 className="w-5 h-5 text-white" /> : <UserPlus className="w-5 h-5 text-white" />}
+                </div>
+                <h2 className="text-lg font-bold text-white tracking-wide">
+                  {isEditing ? "Edit Data Karyawan" : "Tambah Karyawan Baru"}
+                </h2>
+              </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Nama Lengkap (Sesuai KTP/Buku Rekening)
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                  Nama Lengkap
                 </label>
-                <input
-                  type="text"
-                  name="nama"
-                  required
-                  value={formData.nama}
-                  onChange={handleInputChange}
-                  placeholder="Contoh: ROSELINA MAYOR"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary uppercase"
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    name="nama"
+                    required
+                    value={formData.nama}
+                    onChange={handleInputChange}
+                    placeholder="Sesuai KTP/Buku Rekening"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all font-medium uppercase text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    Jabatan / Posisi
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      name="jabatan"
+                      required
+                      value={formData.jabatan}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Karyawan"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all font-medium text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    Standar Gaji Pokok
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm pointer-events-none">Rp</span>
+                    <input
+                      type="number"
+                      name="gajiPokok"
+                      required
+                      min="0"
+                      value={formData.gajiPokok}
+                      onChange={handleInputChange}
+                      className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all font-medium text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    Nomor HP
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      name="noHp"
+                      value={formData.noHp}
+                      onChange={handleInputChange}
+                      placeholder="Opsional (081...)"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all font-medium text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    Tanggal Lahir
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      name="tanggalLahir"
+                      value={formData.tanggalLahir}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all font-medium text-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Jabatan / Posisi
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                  Rekening Bank
                 </label>
-                <input
-                  type="text"
-                  name="jabatan"
-                  required
-                  value={formData.jabatan}
-                  onChange={handleInputChange}
-                  placeholder="Contoh: Karyawan"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
-                />
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    name="rekeningBank"
+                    value={formData.rekeningBank}
+                    onChange={handleInputChange}
+                    placeholder="Opsional (BCA - 123...)"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all font-medium text-sm"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Standar Gaji Pokok (Rp)
-                </label>
-                <input
-                  type="number"
-                  name="gajiPokok"
-                  required
-                  min="0"
-                  value={formData.gajiPokok}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Nomor HP (Contoh: 081234567890)
-                </label>
-                <input
-                  type="text"
-                  name="noHp"
-                  value={formData.noHp}
-                  onChange={handleInputChange}
-                  placeholder="Opsional"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Rekening Bank (Nama Bank - Nomor Rekening)
-                </label>
-                <input
-                  type="text"
-                  name="rekeningBank"
-                  value={formData.rekeningBank}
-                  onChange={handleInputChange}
-                  placeholder="Opsional, cth: BCA - 123456789"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Tanggal Lahir
-                </label>
-                <input
-                  type="date"
-                  name="tanggalLahir"
-                  value={formData.tanggalLahir}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
                   Alamat Lengkap
                 </label>
-                <textarea
-                  name="alamat"
-                  value={formData.alamat}
-                  onChange={handleInputChange}
-                  placeholder="Opsional"
-                  rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-papua-primary resize-none"
-                />
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <textarea
+                    name="alamat"
+                    value={formData.alamat}
+                    onChange={handleInputChange}
+                    placeholder="Opsional"
+                    rows={2}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-papua-primary focus:border-papua-primary transition-all resize-none font-medium text-sm"
+                  />
+                </div>
               </div>
 
-              <div className="pt-4 flex gap-3">
+              {/* Footer Buttons */}
+              <div className="pt-6 border-t border-gray-100 flex justify-end gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 rounded-xl text-sm font-bold transition-all shadow-sm"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 bg-papua-primary text-white rounded-lg font-bold hover:bg-papua-primary transition-colors shadow-sm"
+                  className="px-6 py-2.5 bg-papua-primary hover:bg-gray-800 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5"
                 >
-                  {isEditing ? "Simpan Perubahan" : "Simpan Karyawan"}
+                  <Save className="w-4 h-4" /> {isEditing ? "Simpan Perubahan" : "Simpan Karyawan"}
                 </button>
               </div>
             </form>

@@ -22,7 +22,8 @@ import {
   TrendingUp,
   TrendingDown,
   Clock,
-  Wallet
+  Wallet,
+  Eye
 } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
@@ -40,6 +41,8 @@ export default function RekapanGajiPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeKaryawan, setActiveKaryawan] = useState(null);
   const [dataCetakList, setDataCetakList] = useState([]);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
 
   const namaBulan = [
     "JANUARI",
@@ -219,6 +222,7 @@ export default function RekapanGajiPage() {
       lembur: karyawan.lembur || 0,
       thr: karyawan.thr || 0,
       homestay: karyawan.homestay || 0,
+      catatan: karyawan.catatan || "",
     });
     setIsModalOpen(true);
   };
@@ -226,7 +230,8 @@ export default function RekapanGajiPage() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setActiveKaryawan((prev) => {
-      const updated = { ...prev, [name]: Number(value) };
+      const updatedValue = name === "catatan" ? value : Number(value);
+      const updated = { ...prev, [name]: updatedValue };
       
       if (name === "hariHadir") {
         const hari = Number(value);
@@ -253,6 +258,7 @@ export default function RekapanGajiPage() {
         periodeBulan: bulan,
         periodeTahun: tahun,
         netGaji: hitungNetGaji(activeKaryawan),
+        tanggalKalkulasi: new Date().toISOString(),
         isSaved: true,
       };
       await setDoc(doc(db, "gaji_bulanan", docId), dataToSave);
@@ -271,6 +277,11 @@ export default function RekapanGajiPage() {
   const handleCetakSlip = (data) => {
     setDataCetakList([data]);
     setTimeout(() => window.print(), 500);
+  };
+
+  const handlePreviewSlip = (data) => {
+    setPreviewData(data);
+    setIsPreviewModalOpen(true);
   };
 
   const handleKirimWA = async (data) => {
@@ -541,6 +552,15 @@ export default function RekapanGajiPage() {
                           </button>
 
                           <button
+                            onClick={() => handlePreviewSlip(data)}
+                            disabled={!data.isSaved}
+                            className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded text-xs font-bold transition-colors disabled:opacity-30 flex items-center gap-1 border border-purple-200"
+                            title="Preview Slip Gaji"
+                          >
+                            <Eye className="w-3 h-3" /> Preview
+                          </button>
+
+                          <button
                             onClick={() => handleCetakSlip(data)}
                             disabled={!data.isSaved}
                             className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded text-xs font-bold transition-colors disabled:opacity-30 flex items-center gap-1 border border-gray-300"
@@ -775,6 +795,21 @@ export default function RekapanGajiPage() {
                 </div>
               </div>
 
+              {/* CATATAN SECTION */}
+              <div className="space-y-4 pt-2">
+                <label className="block text-sm">
+                  <div className="text-xs font-bold text-gray-600 mb-1">Catatan (opsional)</div>
+                  <textarea
+                    name="catatan"
+                    value={activeKaryawan.catatan || ""}
+                    onChange={handleInputChange}
+                    placeholder="Contoh: Pembayaran kasbon bulan lalu"
+                    rows={2}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium resize-none"
+                  />
+                </label>
+              </div>
+
               {/* NET GAJI PREVIEW */}
               <div className="bg-gradient-to-r from-papua-green/10 to-transparent rounded-xl p-5 flex items-center justify-between border border-papua-green/20">
                 <div className="flex items-center gap-4">
@@ -812,6 +847,220 @@ export default function RekapanGajiPage() {
         </div>
       )}
 
+      {/* PREVIEW MODAL */}
+      {isPreviewModalOpen && previewData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm print:hidden">
+          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] relative">
+            <div className="bg-gray-800 px-6 py-4 flex justify-between items-center shrink-0">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Eye className="w-5 h-5 text-purple-300" /> Preview Slip Gaji
+              </h3>
+              <button
+                onClick={() => setIsPreviewModalOpen(false)}
+                className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 sm:p-8 overflow-y-auto bg-gray-100 flex justify-center">
+              <div className="bg-white p-4 sm:p-8 shadow-sm border border-gray-200 w-full max-w-[210mm] min-h-max sm:min-h-[297mm] text-black text-xs sm:text-sm">
+                {(() => {
+                  const cetakData = previewData;
+                  const totalBonus = Number(cetakData.lembur) + Number(cetakData.thr) + Number(cetakData.homestay);
+                  const gajiBruto = Number(cetakData.gajiPokok) + totalBonus;
+                  const potonganList = [
+                    { label: "Kasbon Makanan", value: Number(cetakData.kasbonLama) || 0 },
+                    { label: "Potongan Bulanan", value: Number(cetakData.dendaKostum) || 0 },
+                    { label: "Panjar", value: Number(cetakData.panjar) || 0 },
+                    { label: "Tidak Hadir", value: Number(cetakData.tidakHadir) || 0 },
+                  ];
+                  const totalPotong = potonganList.reduce((s, p) => s + p.value, 0);
+                  const netGajiCetak = gajiBruto - totalPotong;
+                  
+                  const calculationDate = cetakData.tanggalKalkulasi ? new Date(cetakData.tanggalKalkulasi) : new Date();
+                  const strCalculationDate = `${calculationDate.getDate()} ${namaBulan[calculationDate.getMonth()]} ${calculationDate.getFullYear()}`;
+                  
+                  const urutanKaryawan = dataRekapan.findIndex(k => k.idKaryawan === cetakData.idKaryawan) + 1;
+                  const romawiBulan = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+                  const strBulanRomawi = romawiBulan[(cetakData.periodeBulan || bulan) - 1];
+                  const strTahun = (cetakData.periodeTahun || tahun).toString();
+                  
+                  return (
+                    <div className="w-full pt-2 pb-4 px-2 sm:px-4">
+                      <div className="flex items-center justify-between mb-4 border-b-2 border-[#8f3d1b] pb-3">
+                        <div className="flex-1">
+                          <h1 className="text-lg sm:text-[22px] font-bold mb-1">RUMAH ETNIK PAPUA</h1>
+                          <p className="text-xs sm:text-sm mb-0.5">Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
+                          <p className="text-xs sm:text-sm">No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
+                        </div>
+                        <div className="w-24 sm:w-36 flex justify-end hidden sm:flex">
+                          <img
+                            src="/logo.jpg"
+                            alt="logo"
+                            className="w-20 sm:w-28"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="text-center mb-6">
+                        <h2 className="text-xl sm:text-2xl font-bold text-[#8f3d1b]">SLIP GAJI KARYAWAN</h2>
+                      </div>
+
+                      <div className="flex justify-between mb-6 font-bold">
+                        <div className="flex gap-2">
+                          <span className="w-16 sm:w-20">Periode</span>
+                          <span>: {namaBulan[cetakData.periodeBulan - 1] || namaBulan[bulan - 1]} {cetakData.periodeTahun || tahun}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="w-24 sm:w-28 text-right">No. Slip Gaji</span>
+                          <span>: REP/SG/{strBulanRomawi}/{strTahun}/{urutanKaryawan}</span>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <div className="bg-[#8f3d1b] text-white font-bold px-3 py-1 inline-block mb-3 w-64 sm:w-72">
+                          DATA KARYAWAN
+                        </div>
+                        <table className="w-full font-bold">
+                          <tbody>
+                            <tr>
+                              <td className="w-24 sm:w-32 py-1">Nama</td>
+                              <td className="w-4">:</td>
+                              <td>{cetakData.namaKaryawan || "-"}</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1">Jabatan</td>
+                              <td>:</td>
+                              <td>{cetakData.jabatan || "KARYAWAN"}</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1">Ket. absen</td>
+                              <td>:</td>
+                              <td>{cetakData.hariHadir} Hari</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
+                        <div className="flex-1">
+                          <table className="w-full border-collapse border border-[#8f3d1b]">
+                            <thead>
+                              <tr className="bg-[#8f3d1b] text-white">
+                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">RINCIAN PENGHASILAN</th>
+                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-24 sm:w-28 font-bold">JUMLAH</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">1. Gaji Pokok</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.gajiPokok) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">2. Lembur</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.lembur) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">3. Bonus / Insentif</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.thr || 0) + Number(cetakData.homestay || 0))}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">4.</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                              </tr>
+                              <tr className="font-bold bg-orange-50/50">
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL PENGHASILAN</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(gajiBruto)}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="flex-1">
+                          <table className="w-full border-collapse border border-[#8f3d1b]">
+                            <thead>
+                              <tr className="bg-[#8f3d1b] text-white">
+                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">POTONGAN</th>
+                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-24 sm:w-28 font-bold">JUMLAH</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Makanan</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonLama) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">2. Potongan Bulanan</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.dendaKostum) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">3. Panjar</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.panjar) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">4. Tidak Hadir</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.tidakHadir) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                              </tr>
+                              <tr className="font-bold bg-orange-50/50">
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotong)}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 text-[15px] font-bold gap-2">
+                        <div className="text-[#8f3d1b] uppercase">TOTAL DITERIMA</div>
+                        <div className="border border-[#8f3d1b] px-4 py-1.5 w-full sm:w-64 text-right text-[#8f3d1b]">
+                          Rp{formatAngkaSaja(netGajiCetak)}
+                        </div>
+                      </div>
+
+                      <div className="mb-4 flex flex-col sm:flex-row font-bold gap-2 sm:gap-0">
+                        <span className="sm:mr-2">Terbilang:</span>
+                        <span className="flex-1">( {terbilang(netGajiCetak)} Rupiah )</span>
+                      </div>
+
+                      <div className="flex justify-end mb-2">
+                        <div className="text-center w-full sm:w-64">
+                          <p>Sorong, {strCalculationDate}</p>
+                          <div className="h-16"></div>
+                        </div>
+                      </div>
+
+                      <div className="font-bold mt-2 flex flex-col sm:flex-row gap-2">
+                        <span>Catatan :</span>
+                        <span className="font-normal whitespace-pre-wrap">{cetakData.catatan || "-"}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CETAK AREA (print only) */}
       <div className="hidden print:block font-sans text-black bg-white w-full">
         {dataCetakList.map((cetakData, idx) => {
@@ -820,20 +1069,33 @@ export default function RekapanGajiPage() {
             Number(cetakData.thr) +
             Number(cetakData.homestay);
           const gajiBruto = Number(cetakData.gajiPokok) + totalBonus;
+          
           const potonganList = [
-            { label: "PANJAR", value: Number(cetakData.panjar) || 0 },
-            { label: "TIDAK HADIR", value: Number(cetakData.tidakHadir) || 0 },
-            { label: "KASBON", value: Number(cetakData.kasbonLama) || 0 },
-            { label: "TERLAMBAT", value: Number(cetakData.dendaKostum) || 0 },
+            { label: "Kasbon Makanan", value: Number(cetakData.kasbonLama) || 0 },
+            { label: "Potongan Bulanan", value: Number(cetakData.dendaKostum) || 0 },
+            { label: "Panjar", value: Number(cetakData.panjar) || 0 },
+            { label: "Tidak Hadir", value: Number(cetakData.tidakHadir) || 0 },
           ];
           const totalPotong = potonganList.reduce((s, p) => s + p.value, 0);
           const netGajiCetak = gajiBruto - totalPotong;
-          const todayDate = new Date();
+          
+          const calculationDate = cetakData.tanggalKalkulasi ? new Date(cetakData.tanggalKalkulasi) : new Date();
+          const strCalculationDate = `${calculationDate.getDate()} ${namaBulan[calculationDate.getMonth()]} ${calculationDate.getFullYear()}`;
+          
+          const urutanKaryawan = dataRekapan.findIndex(k => k.idKaryawan === cetakData.idKaryawan) + 1;
+          const romawiBulan = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+          const strBulanRomawi = romawiBulan[(cetakData.periodeBulan || bulan) - 1];
+          const strTahun = (cetakData.periodeTahun || tahun).toString();
+          
           return (
-            <div key={idx} className="slip-container w-full pt-4 pb-8 px-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-36">
-                  {/* Placeholder logo area */}
+            <div key={idx} className="slip-container w-full pt-2 pb-4 px-4">
+              <div className="flex items-center justify-between mb-4 border-b-2 border-[#8f3d1b] pb-3">
+                <div className="flex-1">
+                  <h1 className="text-[22px] font-bold mb-1">RUMAH ETNIK PAPUA</h1>
+                  <p className="text-sm mb-0.5">Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
+                  <p className="text-sm">No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
+                </div>
+                <div className="w-36 flex justify-end">
                   <img
                     src="/logo.jpg"
                     alt="logo"
@@ -843,133 +1105,154 @@ export default function RekapanGajiPage() {
                     }}
                   />
                 </div>
-                <div className="flex-1 text-center">
-                  <h2 className="text-2xl font-bold tracking-tight">
-                    SLIP GAJI BULAN{" "}
-                    {namaBulan[cetakData.periodeBulan - 1] ||
-                      namaBulan[bulan - 1]}{" "}
-                    {cetakData.periodeTahun || tahun}
-                  </h2>
-                </div>
-                <div className="w-36" />
               </div>
 
-              <hr className="border-t-2 border-black mb-4" />
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-[#8f3d1b]">SLIP GAJI KARYAWAN</h2>
+              </div>
 
-              <p className="mb-4">
-                Yang Bertanda Tangan Dibawah ini Menerangkan Bahwa :
-              </p>
-
-              <table className="w-full mb-4 text-base">
-                <tbody>
-                  <tr>
-                    <td className="w-28 font-semibold">NAMA</td>
-                    <td className="w-3">:</td>
-                    <td className="font-medium">
-                      {cetakData.namaKaryawan || "-"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-semibold">JABATAN</td>
-                    <td>:</td>
-                    <td className="font-medium">
-                      {cetakData.jabatan || "KARYAWAN"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-semibold">KET. ABSEN</td>
-                    <td>:</td>
-                    <td className="font-medium">{cetakData.hariHadir} HARI</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div className="border border-black mb-2">
-                <div className="bg-white/90 px-3 py-2 font-bold uppercase">
-                  PENERIMAAN
+              <div className="flex justify-between mb-6 text-sm font-bold">
+                <div className="flex gap-2">
+                  <span className="w-20">Periode</span>
+                  <span>: {namaBulan[cetakData.periodeBulan - 1] || namaBulan[bulan - 1]} {cetakData.periodeTahun || tahun}</span>
                 </div>
-                <div className="px-3 py-3">
-                  <table className="w-full text-base">
+                <div className="flex gap-2">
+                  <span className="w-28 text-right">No. Slip Gaji</span>
+                  <span>: REP/SG/{strBulanRomawi}/{strTahun}/{urutanKaryawan}</span>
+                </div>
+              </div>
+
+              <div className="mb-6 text-sm">
+                <div className="bg-[#8f3d1b] text-white font-bold px-3 py-1 inline-block mb-3 w-72">
+                  DATA KARYAWAN
+                </div>
+                <table className="w-full font-bold">
+                  <tbody>
+                    <tr>
+                      <td className="w-32 py-1">Nama</td>
+                      <td className="w-4">:</td>
+                      <td>{cetakData.namaKaryawan || "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1">Jabatan</td>
+                      <td>:</td>
+                      <td>{cetakData.jabatan || "KARYAWAN"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1">Keterangan absen</td>
+                      <td>:</td>
+                      <td>{cetakData.hariHadir} Hari</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex gap-6 mb-6 text-sm">
+                <div className="flex-1">
+                  <table className="w-full border-collapse border border-[#8f3d1b]">
+                    <thead>
+                      <tr className="bg-[#8f3d1b] text-white">
+                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">RINCIAN PENGHASILAN</th>
+                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-28 font-bold">JUMLAH</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       <tr>
-                        <td className="w-44">GAJI POKOK</td>
-                        <td className="w-3">:</td>
-                        <td className="text-right font-medium">
-                          Rp {formatAngkaSaja(Number(cetakData.gajiPokok) || 0)}
-                        </td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">1. Gaji Pokok</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.gajiPokok) || 0)}</td>
                       </tr>
                       <tr>
-                        <td>LEMBUR</td>
-                        <td>:</td>
-                        <td className="text-right">
-                          Rp {formatAngkaSaja(Number(cetakData.lembur) || 0)}
-                        </td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">2. Lembur</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.lembur) || 0)}</td>
                       </tr>
                       <tr>
-                        <td>BONUS</td>
-                        <td>:</td>
-                        <td className="text-right">
-                          Rp{" "}
-                          {formatAngkaSaja(
-                            Number(cetakData.thr || 0) +
-                              Number(cetakData.homestay || 0),
-                          )}
-                        </td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">3. Bonus / Insentif</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.thr || 0) + Number(cetakData.homestay || 0))}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">4.</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                      </tr>
+                      <tr className="font-bold bg-orange-50/50">
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL PENGHASILAN</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(gajiBruto)}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-                <div className="border-t border-black px-3 py-2 flex justify-between font-bold text-lg">
-                  <div>GAJI BRUTO</div>
-                  <div>Rp {formatAngkaSaja(gajiBruto)}</div>
-                </div>
-              </div>
 
-              <div className="border border-black mb-4">
-                <div className="bg-white/90 px-3 py-2 font-bold uppercase">
-                  SUB.POTONGAN
-                </div>
-                <div className="px-3 py-3">
-                  <table className="w-full text-sm">
+                <div className="flex-1">
+                  <table className="w-full border-collapse border border-[#8f3d1b]">
+                    <thead>
+                      <tr className="bg-[#8f3d1b] text-white">
+                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">POTONGAN</th>
+                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-28 font-bold">JUMLAH</th>
+                      </tr>
+                    </thead>
                     <tbody>
-                      {potonganList.map((p) => (
-                        <tr key={p.label}>
-                          <td className="w-44">{p.label}</td>
-                          <td className="w-3">:</td>
-                          <td className="text-right">
-                            Rp {formatAngkaSaja(p.value)}
-                          </td>
-                        </tr>
-                      ))}
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Makanan</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonLama) || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">2. Potongan Bulanan</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.dendaKostum) || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">3. Panjar</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.panjar) || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">4. Tidak Hadir</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.tidakHadir) || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
+                      </tr>
+                      <tr className="font-bold bg-orange-50/50">
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotong)}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
-                <div className="border-t border-black px-3 py-2 flex justify-between font-bold text-lg">
-                  <div>TOTAL POTONGAN</div>
-                  <div>Rp {formatAngkaSaja(totalPotong)}</div>
+              </div>
+
+              <div className="flex mb-4 text-[15px] font-bold items-center">
+                <div className="text-[#8f3d1b] uppercase w-1/2">TOTAL DITERIMA</div>
+                <div className="border border-[#8f3d1b] px-4 py-1.5 w-64 text-right text-[#8f3d1b]">
+                  Rp{formatAngkaSaja(netGajiCetak)}
                 </div>
               </div>
 
-              <div className="flex justify-between items-start mb-8">
-                <div>
-                  <div className="font-bold">TOTAL BERSIH</div>
-                  <div className="text-lg font-bold">
-                    Rp {formatAngkaSaja(netGajiCetak)}
-                  </div>
-                </div>
-                <div className="italic max-w-xs">
-                  TERBILANG : {terbilang(netGajiCetak)} Rupiah
+              <div className="mb-4 text-sm flex font-bold">
+                <span className="mr-2">Terbilang:</span>
+                <span className="flex-1">( {terbilang(netGajiCetak)} Rupiah )</span>
+              </div>
+
+              <div className="flex justify-end text-sm mb-2">
+                <div className="text-center w-64">
+                  <p>Sorong, {strCalculationDate}</p>
+                  <div className="h-16"></div>
                 </div>
               </div>
 
-              <div className="flex justify-end mt-12 text-right">
-                <div className="w-64 text-center">
-                  <div className="mb-8">
-                    {todayDate.getDate()} {namaBulan[todayDate.getMonth()]}{" "}
-                    {todayDate.getFullYear()}
-                  </div>
-                  <div className="text-lg font-bold">MITSI WANMA</div>
-                </div>
+              <div className="text-sm font-bold mt-2 flex gap-2">
+                <span>Catatan :</span>
+                <span className="font-normal whitespace-pre-wrap">{cetakData.catatan || "-"}</span>
               </div>
             </div>
           );
@@ -980,7 +1263,7 @@ export default function RekapanGajiPage() {
         @media print {
           @page {
             size: portrait;
-            margin: 1.5cm;
+            margin: 1cm;
           }
           body {
             background-color: white !important;
