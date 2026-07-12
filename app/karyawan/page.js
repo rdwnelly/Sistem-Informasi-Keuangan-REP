@@ -198,11 +198,21 @@ export default function KaryawanPage() {
 
       {/* TABEL DATA KARYAWAN */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50">
-          <Users className="w-5 h-5 text-gray-500" />
-          <h2 className="text-lg font-bold text-papua-primary">
-            Daftar Karyawan Aktif & Nonaktif
-          </h2>
+        <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
+          <div className="flex items-center gap-3">
+            <Users className="w-5 h-5 text-gray-500" />
+            <h2 className="text-lg font-bold text-papua-primary">
+              Daftar Karyawan
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-papua-green/10 text-papua-green border border-papua-green/30 rounded-full text-xs font-bold">
+              {karyawanList.filter(k => k.statusAktif).length} Aktif
+            </span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs font-bold">
+              {karyawanList.filter(k => !k.statusAktif).length} Nonaktif
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

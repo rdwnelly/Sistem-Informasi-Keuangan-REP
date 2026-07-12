@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
 
 const AuthContext = createContext({});
@@ -31,7 +31,10 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, [pathname, router]);
 
-  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const login = async (email, password) => {
+    await setPersistence(auth, browserSessionPersistence);
+    return signInWithEmailAndPassword(auth, email, password);
+  };
   const logout = () => signOut(auth);
 
   return (

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -40,6 +40,10 @@ export default function UnitUsahaPage() {
   const { slug } = useParams();
   const config = UNIT_CONFIG[slug];
 
+  const dateNow = new Date();
+  const [filterBulan, setFilterBulan] = useState(dateNow.getMonth() + 1);
+  const [filterTahun, setFilterTahun] = useState(dateNow.getFullYear());
+
   const [dataUnit, setDataUnit] = useState({
     pendapatan: [],
     biaya: [],
@@ -50,7 +54,7 @@ export default function UnitUsahaPage() {
   const [transaksiUnit, setTransaksiUnit] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUnitData = async () => {
+  const fetchUnitData = useCallback(async () => {
     if (!config) return; // Jika URL tidak valid, hentikan fungsi
     setLoading(true);
 
@@ -73,6 +77,16 @@ export default function UnitUsahaPage() {
 
       jurnalSnapshot.forEach((doc) => {
         const trx = { id: doc.id, ...doc.data() };
+        
+        if (trx.tanggal) {
+          const trxDate = new Date(trx.tanggal);
+          const trxBulan = trxDate.getMonth() + 1;
+          const trxTahun = trxDate.getFullYear();
+
+          if (filterBulan !== 0 && trxBulan !== filterBulan) return;
+          if (filterTahun !== 0 && trxTahun !== filterTahun) return;
+        }
+
         const nominal = Number(trx.nominal) || 0;
         let isTerkait = false;
 
@@ -130,12 +144,11 @@ export default function UnitUsahaPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [config, filterBulan, filterTahun]);
 
   useEffect(() => {
     fetchUnitData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [fetchUnitData]);
 
   // Handle URL yang tidak valid
   if (!config) {
@@ -171,14 +184,48 @@ export default function UnitUsahaPage() {
           </div>
           <p className="text-gray-500">Laporan performa dan arus kas unit usaha operasional.</p>
         </div>
-        <button 
-          onClick={fetchUnitData}
-          disabled={loading}
-          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 shadow-sm disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan Data
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex bg-white border border-gray-200 rounded-lg shadow-sm">
+            <select
+              value={filterBulan}
+              onChange={(e) => setFilterBulan(Number(e.target.value))}
+              className="bg-transparent px-3 py-2 text-sm text-gray-700 outline-none border-r border-gray-200 cursor-pointer"
+            >
+              <option value={0}>Semua Bulan</option>
+              <option value={1}>Januari</option>
+              <option value={2}>Februari</option>
+              <option value={3}>Maret</option>
+              <option value={4}>April</option>
+              <option value={5}>Mei</option>
+              <option value={6}>Juni</option>
+              <option value={7}>Juli</option>
+              <option value={8}>Agustus</option>
+              <option value={9}>September</option>
+              <option value={10}>Oktober</option>
+              <option value={11}>November</option>
+              <option value={12}>Desember</option>
+            </select>
+            <select
+              value={filterTahun}
+              onChange={(e) => setFilterTahun(Number(e.target.value))}
+              className="bg-transparent px-3 py-2 text-sm text-gray-700 outline-none cursor-pointer"
+            >
+              <option value={0}>Semua Tahun</option>
+              {[2024, 2025, 2026, 2027].map(thn => (
+                <option key={thn} value={thn}>{thn}</option>
+              ))}
+            </select>
+          </div>
+
+          <button 
+            onClick={fetchUnitData}
+            disabled={loading}
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 shadow-sm disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Segarkan
+          </button>
+        </div>
       </div>
 
       {loading ? (

@@ -49,7 +49,7 @@ export default function TentangPage() {
                 Jalan Baru Aimas - Klamono Km. 21, Kabupaten Sorong, Provinsi Papua Barat Daya.
               </span>
             </div>
-            
+
             <p className="text-gray-600 text-sm md:text-base leading-relaxed text-justify">
               Kami didirikan dengan visi luhur untuk menjadi pusat wisata budaya dan edukasi Papua yang berkelanjutan, serta menjadi motor penggerak pelestarian budaya dan pemberdayaan masyarakat asli Papua.
             </p>
@@ -67,11 +67,11 @@ export default function TentangPage() {
               <Globe className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-bold text-gray-800">Misi Digitalisasi Kami</h2>
             </div>
-            
+
             <p className="text-gray-600 text-sm leading-relaxed mb-6 text-justify">
               Sistem ini merupakan bagian dari langkah transformasi digital Yayasan Rumah Etnik Papua untuk menghadirkan tata kelola administrasi yang efisien, transparan, dan profesional. Ekosistem digital REP mencakup:
             </p>
-            
+
             <div className="space-y-5 mb-8 flex-1">
               <div className="flex gap-4">
                 <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
@@ -112,7 +112,7 @@ export default function TentangPage() {
 
           {/* Right Column */}
           <div className="lg:col-span-5 flex flex-col gap-6">
-            
+
             {/* Pengurus Card */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
@@ -158,7 +158,7 @@ export default function TentangPage() {
                   <h3 className="text-yellow-400 font-bold text-base mb-1">Ridwan Elly</h3>
                   <p className="text-sm text-gray-400">Lead Full-Stack Software Engineer</p>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-3 mb-8">
                   <a href="https://wa.me/6281342310203" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-lg text-sm text-white font-medium">
                     <MessageCircle className="w-4 h-4 text-green-400" />

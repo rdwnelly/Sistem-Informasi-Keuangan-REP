@@ -19,6 +19,10 @@ import {
   X,
   Plus,
   Send,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Wallet
 } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
@@ -358,8 +362,18 @@ export default function RekapanGajiPage() {
   const formatAngkaSaja = (angka) =>
     new Intl.NumberFormat("id-ID").format(angka);
 
+  const totalGajiPokok = dataRekapan.reduce((acc, curr) => acc + (Number(curr.gajiPokok) || 0), 0);
+  const totalTidakHadir = dataRekapan.reduce((acc, curr) => acc + (Number(curr.tidakHadir) || 0), 0);
+  const totalKasbon = dataRekapan.reduce((acc, curr) => acc + (Number(curr.kasbonLama) || 0), 0);
+  const totalTerlambat = dataRekapan.reduce((acc, curr) => acc + (Number(curr.dendaKostum) || 0), 0);
+  const totalPanjar = dataRekapan.reduce((acc, curr) => acc + (Number(curr.panjar) || 0), 0);
+  const totalLembur = dataRekapan.reduce((acc, curr) => acc + (Number(curr.lembur) || 0), 0);
+  const totalBonusVal = dataRekapan.reduce((acc, curr) => acc + (Number(curr.thr) || 0) + (Number(curr.homestay) || 0), 0);
+  const totalPotonganKeseluruhan = dataRekapan.reduce((acc, curr) => acc + hitungPotongan(curr), 0);
+  const totalNetGajiKeseluruhan = dataRekapan.reduce((acc, curr) => acc + hitungNetGaji(curr), 0);
+
   return (
-    <div className="max-w-6xl mx-auto pb-12 print:mx-0 print:pb-0">
+    <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto pb-12 print:mx-0 print:px-0 print:pb-0">
       {/* ================================================================= */}
       {/* ================== BAGIAN UI WEB (TIDAK TERCETAK) ================== */}
       <div className="print:hidden">
@@ -546,6 +560,41 @@ export default function RekapanGajiPage() {
                     );
                   })
                 )}
+                {!loading && dataRekapan.length > 0 && (
+                  <tr className="bg-gray-800 text-white font-bold">
+                    <td colSpan={2} className="px-4 py-4 text-center rounded-bl-xl">
+                      TOTAL
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      {formatRupiah(totalGajiPokok)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-red-300">
+                      {formatRupiah(totalTidakHadir)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-red-300">
+                      {formatRupiah(totalKasbon)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-red-300">
+                      {formatRupiah(totalTerlambat)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-amber-300">
+                      {formatRupiah(totalPanjar)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-blue-300">
+                      {formatRupiah(totalLembur)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-blue-300">
+                      {formatRupiah(totalBonusVal)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-red-300">
+                      {formatRupiah(totalPotonganKeseluruhan)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-green-300">
+                      {formatRupiah(totalNetGajiKeseluruhan)}
+                    </td>
+                    <td className="px-4 py-4 rounded-br-xl"></td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -553,141 +602,210 @@ export default function RekapanGajiPage() {
       </div>
 
       {isModalOpen && activeKaryawan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
           <div
-            className="fixed inset-0 bg-black/40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsModalOpen(false)}
           />
           <form
             onSubmit={handleSimpanRekapan}
-            className="relative bg-white rounded-lg p-6 w-full max-w-lg shadow-lg z-10"
+            className="relative bg-white rounded-2xl w-full max-w-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">
-                Kalkulasi Gaji - {activeKaryawan.namaKaryawan}
-              </h3>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-papua-primary to-gray-900 px-6 py-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Calculator className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    Kalkulasi Gaji
+                  </h3>
+                  <p className="text-white/80 text-xs font-medium">{activeKaryawan.namaKaryawan} - {activeKaryawan.jabatan}</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-500"
+                className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <label className="text-sm">
-                <div className="text-xs text-gray-600 font-bold text-papua-primary">Hari Hadir (Hari)</div>
-                <input
-                  name="hariHadir"
-                  type="number"
-                  value={activeKaryawan.hariHadir || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-blue-300 rounded-md px-3 py-2 text-sm bg-papua-accent/10 focus:outline-none focus:ring-2 focus:ring-papua-primary"
-                />
-                <div className="text-[10px] text-gray-400 mt-0.5">Potongan otomatis jika &lt; 28 hari</div>
-              </label>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                
+                {/* PEMASUKAN SECTION */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                    <TrendingUp className="w-4 h-4 text-papua-green" />
+                    <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Pemasukan</h4>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Hari Hadir (Hari)</div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <input
+                          name="hariHadir"
+                          type="number"
+                          value={activeKaryawan.hariHadir || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                      <div className="text-[10px] text-gray-400 mt-1">Potongan otomatis jika &lt; 28 hari</div>
+                    </label>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Tidak Hadir (Rp)</div>
-                <input
-                  name="tidakHadir"
-                  type="number"
-                  value={activeKaryawan.tidakHadir || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              </label>
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Lembur (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="lembur"
+                          type="number"
+                          value={activeKaryawan.lembur || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Lembur (Rp)</div>
-                <input
-                  name="lembur"
-                  type="number"
-                  value={activeKaryawan.lembur || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              </label>
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Bonus THR (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="thr"
+                          type="number"
+                          value={activeKaryawan.thr || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Bonus THR (Rp)</div>
-                <input
-                  name="thr"
-                  type="number"
-                  value={activeKaryawan.thr || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              </label>
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Bonus Homestay (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="homestay"
+                          type="number"
+                          value={activeKaryawan.homestay || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </div>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Bonus Homestay (Rp)</div>
-                <input
-                  name="homestay"
-                  type="number"
-                  value={activeKaryawan.homestay || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              </label>
+                {/* POTONGAN SECTION */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                    <TrendingDown className="w-4 h-4 text-papua-red" />
+                    <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Potongan</h4>
+                  </div>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Kasbon (Rp)</div>
-                <input
-                  name="kasbonLama"
-                  type="number"
-                  value={activeKaryawan.kasbonLama || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              </label>
+                  <div className="space-y-4">
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Tidak Hadir (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="tidakHadir"
+                          type="number"
+                          value={activeKaryawan.tidakHadir || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Terlambat / Kostum (Rp)</div>
-                <input
-                  name="dendaKostum"
-                  type="number"
-                  value={activeKaryawan.dendaKostum || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              </label>
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Kasbon (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="kasbonLama"
+                          type="number"
+                          value={activeKaryawan.kasbonLama || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
 
-              <label className="text-sm">
-                <div className="text-xs text-gray-600">Panjar (Rp)</div>
-                <input
-                  name="panjar"
-                  type="number"
-                  value={activeKaryawan.panjar || 0}
-                  onChange={handleInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500"
-                  readOnly
-                  title="Panjar dihitung otomatis dari data Panjar"
-                />
-              </label>
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Terlambat / Kostum (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="dendaKostum"
+                          type="number"
+                          value={activeKaryawan.dendaKostum || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
 
-              <div className="text-sm col-span-2 mt-2 pt-4 border-t border-gray-100 flex justify-between items-center">
-                <div className="text-xs text-gray-600 uppercase font-bold">Net Gaji (Preview)</div>
-                <div className="text-lg font-bold text-papua-green">
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Panjar (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="panjar"
+                          type="number"
+                          value={activeKaryawan.panjar || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-100 text-gray-500 outline-none cursor-not-allowed font-medium"
+                          readOnly
+                          title="Panjar dihitung otomatis dari data Panjar"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* NET GAJI PREVIEW */}
+              <div className="bg-gradient-to-r from-papua-green/10 to-transparent rounded-xl p-5 flex items-center justify-between border border-papua-green/20">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-papua-green/20 rounded-xl">
+                    <Wallet className="w-6 h-6 text-papua-green" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-800">Net Gaji (Preview)</h4>
+                    <p className="text-xs font-medium text-gray-500 mt-0.5">Total penerimaan bersih karyawan</p>
+                  </div>
+                </div>
+                <div className="text-2xl font-black text-papua-green tracking-tight">
                   {formatRupiah(hitungNetGaji(activeKaryawan))}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            {/* Footer */}
+            <div className="p-5 border-t border-gray-100 bg-gray-50/80 flex justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm"
+                className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 rounded-xl text-sm font-bold transition-all shadow-sm"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-papua-primary hover:bg-papua-primary text-white rounded-md text-sm font-bold"
+                className="px-5 py-2.5 bg-papua-primary hover:bg-gray-800 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5"
               >
-                <Save className="inline-block w-4 h-4 mr-2 -mt-0.5" /> Simpan
+                <Save className="w-4 h-4" /> Simpan Kalkulasi
               </button>
             </div>
           </form>
