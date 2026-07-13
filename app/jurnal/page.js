@@ -83,6 +83,7 @@ const KATEGORI_AKUN = [
       "Biaya Wifi",
       "Biaya Makan Karyawan",
       "Biaya Kostum",
+      "Biaya Kebersihan",
       "Biaya Lain-lain",
     ],
   },

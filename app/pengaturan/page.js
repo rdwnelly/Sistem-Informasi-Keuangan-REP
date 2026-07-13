@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { collection, getDocs, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { hapusJurnalDoubleEntry } from "@/lib/firestore";
 import {
   Settings,
   AlertTriangle,
@@ -111,43 +112,88 @@ export default function PengaturanPage() {
         return;
       }
 
-      const batch = writeBatch(db);
       let totalDeleted = 0;
 
       for (const colName of targetCollections) {
         const querySnapshot = await getDocs(collection(db, colName));
+        const docsToDelete = [];
+
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          let docDate = null;
+          let match = false;
 
+          // 1. Coba cocokkan melalui data.tanggal ("YYYY-MM-DD")
           if (data.tanggal) {
-            docDate = new Date(data.tanggal);
-          } else if (data.timestamp) {
-            docDate = data.timestamp.toDate();
-          } else if (data.bulan && data.tahun) {
-             if (Number(data.bulan) === bulanHapus && Number(data.tahun) === tahunHapus) {
-                batch.delete(doc.ref);
-                totalDeleted++;
-                return;
-             }
-          } else if (data.periodeBulan && data.periodeTahun) {
-             if (Number(data.periodeBulan) === bulanHapus && Number(data.periodeTahun) === tahunHapus) {
-                batch.delete(doc.ref);
-                totalDeleted++;
-                return;
-             }
-          }
-
-          if (docDate && !isNaN(docDate)) {
-            if (docDate.getMonth() + 1 === bulanHapus && docDate.getFullYear() === tahunHapus) {
-              batch.delete(doc.ref);
-              totalDeleted++;
+            const parts = data.tanggal.split("-");
+            if (parts.length === 3) {
+              const y = Number(parts[0]);
+              const m = Number(parts[1]);
+              if (y === tahunHapus && m === bulanHapus) match = true;
+            } else {
+              // Fallback
+              const d = new Date(data.tanggal);
+              if (!isNaN(d) && d.getMonth() + 1 === bulanHapus && d.getFullYear() === tahunHapus) match = true;
             }
           }
-        });
-      }
+          // 2. Coba cocokkan melalui data.timestamp (Firestore Timestamp)
+          else if (data.timestamp) {
+            const d = data.timestamp.toDate();
+            if (d.getMonth() + 1 === bulanHapus && d.getFullYear() === tahunHapus) match = true;
+          }
+          // 3. Coba cocokkan melalui format spesifik lain
+          else if (data.bulan && data.tahun) {
+            if (Number(data.bulan) === bulanHapus && Number(data.tahun) === tahunHapus) match = true;
+          } else if (data.periodeBulan && data.periodeTahun) {
+            if (Number(data.periodeBulan) === bulanHapus && Number(data.periodeTahun) === tahunHapus) match = true;
+          }
 
-      await batch.commit();
+          if (match) {
+            docsToDelete.push(doc);
+          }
+        });
+
+        // Eksekusi penghapusan sesuai koleksi
+        if (colName === "jurnal") {
+          // Khusus Jurnal Umum: Pakai fungsi Reversal agar Saldo Akun ikut diperbarui secara presisi
+          for (const docItem of docsToDelete) {
+            try {
+              const res = await hapusJurnalDoubleEntry(docItem.id);
+              if (res.success) {
+                totalDeleted++;
+              } else {
+                console.warn(`Gagal mereversal jurnal ${docItem.id}:`, res.message);
+              }
+            } catch (err) {
+              console.error(`Error saat menghapus jurnal ${docItem.id}:`, err);
+            }
+          }
+        } else {
+          // Untuk koleksi lain (gaji_bulanan dsb), gunakan writeBatch biasa yang aman (di-chunk per 400 op)
+          if (docsToDelete.length > 0) {
+            const batches = [];
+            let currentBatch = writeBatch(db);
+            let opCount = 0;
+            
+            docsToDelete.forEach((docItem) => {
+              currentBatch.delete(docItem.ref);
+              totalDeleted++;
+              opCount++;
+              
+              if (opCount === 400) {
+                batches.push(currentBatch.commit());
+                currentBatch = writeBatch(db);
+                opCount = 0;
+              }
+            });
+            
+            if (opCount > 0) {
+              batches.push(currentBatch.commit());
+            }
+            
+            await Promise.all(batches);
+          }
+        }
+      }
 
       setStatus({
         type: "success",
@@ -185,20 +231,42 @@ export default function PengaturanPage() {
         "saldo_awal",
       ];
 
-      // Menggunakan writeBatch untuk menghapus banyak dokumen secara efisien & aman
-      const batch = writeBatch(db);
+      // Menggunakan array of writeBatch untuk mendukung data yang lebih dari 500 operasi (Firebase limit)
+      const batches = [];
+      let currentBatch = writeBatch(db);
+      let opCount = 0;
       let totalDeleted = 0;
+
+      const pushOp = () => {
+        opCount++;
+        if (opCount >= 400) {
+          batches.push(currentBatch.commit());
+          currentBatch = writeBatch(db);
+          opCount = 0;
+        }
+      };
 
       for (const colName of collectionsToDelete) {
         const querySnapshot = await getDocs(collection(db, colName));
         querySnapshot.forEach((doc) => {
-          batch.delete(doc.ref);
+          currentBatch.delete(doc.ref);
           totalDeleted++;
+          pushOp();
         });
       }
 
-      // Eksekusi penghapusan massal ke server Firebase
-      await batch.commit();
+      // Reset saldo semua akun di Buku Besar menjadi 0
+      const akunSnapshot = await getDocs(collection(db, "akun"));
+      akunSnapshot.forEach((doc) => {
+        currentBatch.update(doc.ref, { saldo: 0 });
+        pushOp();
+      });
+
+      // Eksekusi penghapusan massal dan update saldo secara parallel
+      if (opCount > 0) {
+        batches.push(currentBatch.commit());
+      }
+      await Promise.all(batches);
 
       setStatus({
         type: "success",
