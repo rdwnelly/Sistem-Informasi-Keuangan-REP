@@ -56,7 +56,7 @@ const KATEGORI_AKUN = [
       "Hutang Tanah Abraham Fricky",
     ],
   },
-  { tipe: "Modal", akun: ["Modal Pemilik"] },
+  { tipe: "Modal", akun: ["Modal Pemilik", "PRIVE"] },
   {
     tipe: "Pendapatan",
     akun: [
