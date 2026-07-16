@@ -43,6 +43,7 @@ export default function RekapanGajiPage() {
   const [dataCetakList, setDataCetakList] = useState([]);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [isCetakTabel, setIsCetakTabel] = useState(false);
 
   const namaBulan = [
     "JANUARI",
@@ -127,12 +128,19 @@ export default function RekapanGajiPage() {
       const qPanjar = query(collection(db, "panjar"));
       const snapPanjar = await getDocs(qPanjar);
       const rekapPanjar = {};
+      const catatanPanjarObj = {};
+
       snapPanjar.forEach((doc) => {
         const p = doc.data();
         const pDate = new Date(p.tanggal);
         if (pDate.getMonth() + 1 === bulan && pDate.getFullYear() === tahun) {
-          rekapPanjar[p.karyawanId] =
-            (rekapPanjar[p.karyawanId] || 0) + p.nominal;
+          rekapPanjar[p.karyawanId] = (rekapPanjar[p.karyawanId] || 0) + p.nominal;
+          
+          const tglStr = pDate.toLocaleDateString("id-ID", { day: '2-digit', month: '2-digit' });
+          const noteText = `Panjar ${tglStr}: Rp${new Intl.NumberFormat("id-ID").format(p.nominal)}`;
+          
+          if (!catatanPanjarObj[p.karyawanId]) catatanPanjarObj[p.karyawanId] = [];
+          catatanPanjarObj[p.karyawanId].push(noteText);
         }
       });
 
@@ -150,11 +158,18 @@ export default function RekapanGajiPage() {
       const hasilGabungan = listKaryawan.map((karyawan) => {
         const tersimpan = mapGajiTersimpan[karyawan.id];
         const totalPanjarBulanIni = rekapPanjar[karyawan.id] || 0;
+        const autoCatatanPanjar = catatanPanjarObj[karyawan.id] ? catatanPanjarObj[karyawan.id].join(", ") : "";
 
         if (tersimpan) {
+          let mergedCatatan = tersimpan.catatan || "";
+          if (autoCatatanPanjar && !mergedCatatan.includes("Panjar")) {
+            mergedCatatan = mergedCatatan ? `${mergedCatatan} | ${autoCatatanPanjar}` : autoCatatanPanjar;
+          }
+
           return {
             ...tersimpan,
             panjar: totalPanjarBulanIni,
+            catatan: mergedCatatan,
             namaKaryawan: karyawan.nama,
             hariHadir: tersimpan.hariHadir || 28,
             noHp: karyawan.noHp || tersimpan.noHp || "",
@@ -173,8 +188,11 @@ export default function RekapanGajiPage() {
           dendaKostum: 0,
           izin: 0,
           kasbonLama: 0,
+          kasbonMakanan: 0,
+          potonganBulanan: 0,
           panjar: totalPanjarBulanIni,
           tidakHadir: 0,
+          catatan: autoCatatanPanjar,
           isSaved: false,
           noHp: karyawan.noHp || "",
         };
@@ -208,6 +226,8 @@ export default function RekapanGajiPage() {
     (Number(data.dendaKostum) || 0) +
     (Number(data.izin) || 0) +
     (Number(data.kasbonLama) || 0) +
+    (Number(data.kasbonMakanan) || 0) +
+    (Number(data.potonganBulanan) || 0) +
     (Number(data.panjar) || 0) +
     (Number(data.tidakHadir) || 0);
   const hitungNetGaji = (data) => hitungPemasukan(data) - hitungPotongan(data);
@@ -217,7 +237,9 @@ export default function RekapanGajiPage() {
       ...karyawan,
       tidakHadir: karyawan.tidakHadir || 0,
       kasbonLama: karyawan.kasbonLama || 0,
+      kasbonMakanan: karyawan.kasbonMakanan || 0,
       dendaKostum: karyawan.dendaKostum || 0,
+      potonganBulanan: karyawan.potonganBulanan || 0,
       panjar: karyawan.panjar || 0,
       lembur: karyawan.lembur || 0,
       thr: karyawan.thr || 0,
@@ -377,6 +399,8 @@ export default function RekapanGajiPage() {
   const totalTidakHadir = dataRekapan.reduce((acc, curr) => acc + (Number(curr.tidakHadir) || 0), 0);
   const totalKasbon = dataRekapan.reduce((acc, curr) => acc + (Number(curr.kasbonLama) || 0), 0);
   const totalTerlambat = dataRekapan.reduce((acc, curr) => acc + (Number(curr.dendaKostum) || 0), 0);
+  const totalKasbonMakanan = dataRekapan.reduce((acc, curr) => acc + (Number(curr.kasbonMakanan) || 0), 0);
+  const totalPotonganBulanan = dataRekapan.reduce((acc, curr) => acc + (Number(curr.potonganBulanan) || 0), 0);
   const totalPanjar = dataRekapan.reduce((acc, curr) => acc + (Number(curr.panjar) || 0), 0);
   const totalLembur = dataRekapan.reduce((acc, curr) => acc + (Number(curr.lembur) || 0), 0);
   const totalBonusVal = dataRekapan.reduce((acc, curr) => acc + (Number(curr.thr) || 0) + (Number(curr.homestay) || 0), 0);
@@ -384,11 +408,11 @@ export default function RekapanGajiPage() {
   const totalNetGajiKeseluruhan = dataRekapan.reduce((acc, curr) => acc + hitungNetGaji(curr), 0);
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto pb-12 print:mx-0 print:px-0 print:pb-0">
+    <div className={`w-full px-4 sm:px-6 lg:px-8 mx-auto pb-12 ${isCetakTabel ? "print:m-0 print:p-0" : "print:mx-0 print:px-0 print:pb-0"}`}>
       {/* ================================================================= */}
       {/* ================== BAGIAN UI WEB (TIDAK TERCETAK) ================== */}
-      <div className="print:hidden">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
+      <div className={isCetakTabel ? "print:block w-full" : "print:hidden"}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4 print:hidden">
           <div>
             <h1 className="text-2xl font-bold text-papua-primary">
               Rekapan & Slip Gaji
@@ -397,15 +421,30 @@ export default function RekapanGajiPage() {
               Kalkulator akhir bulan dan penerbitan slip gaji PDF.
             </p>
           </div>
-          <button
-            onClick={handleCetakSemua}
-            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
-          >
-            <Printer className="w-4 h-4" /> Cetak Semua Slip
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setIsCetakTabel(true);
+                setDataCetakList([]);
+                setTimeout(() => {
+                  window.print();
+                  setTimeout(() => setIsCetakTabel(false), 500);
+                }, 500);
+              }}
+              className="flex items-center gap-2 bg-papua-primary hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm print:hidden"
+            >
+              <Printer className="w-4 h-4" /> Cetak Tabel Rekapan
+            </button>
+            <button
+              onClick={handleCetakSemua}
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm print:hidden"
+            >
+              <Printer className="w-4 h-4" /> Cetak Semua Slip
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <div className="flex items-center gap-2 text-gray-700 font-medium">
             <Calculator className="w-5 h-5 text-papua-primary" />
             <span>Kalkulasi Periode:</span>
@@ -438,7 +477,7 @@ export default function RekapanGajiPage() {
 
         {status.message && (
           <div
-            className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${
+            className={`p-4 rounded-lg mb-6 flex items-center gap-3 border print:hidden ${
               status.type === "error"
                 ? "bg-papua-red/10 border-papua-red/30 text-papua-red"
                 : "bg-papua-green/10 border-papua-green/30 text-papua-green"
@@ -449,10 +488,10 @@ export default function RekapanGajiPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className="bg-gray-800 text-white font-medium">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden print:border-none print:shadow-none print:w-full">
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="w-full text-left text-xs whitespace-nowrap print:text-[10px]">
+              <thead className="bg-gray-800 text-white font-medium print:bg-gray-800 print:text-white">
                 <tr>
                   <th className="px-4 py-4 rounded-tl-xl">NAMA KARYAWAN</th>
                   <th className="px-4 py-4 text-center">ABSEN</th>
@@ -464,6 +503,8 @@ export default function RekapanGajiPage() {
                   <th className="px-4 py-4 text-right text-red-300">
                     TERLAMBAT
                   </th>
+                  <th className="px-4 py-4 text-right text-red-300">KASBON MAKANAN</th>
+                  <th className="px-4 py-4 text-right text-red-300">POTONGAN BULANAN</th>
                   <th className="px-4 py-4 text-right">PANJAR</th>
                   <th className="px-4 py-4 text-right">LEMBUR</th>
                   <th className="px-4 py-4 text-right">BONUS</th>
@@ -473,20 +514,20 @@ export default function RekapanGajiPage() {
                   <th className="px-4 py-4 text-right font-bold text-green-300">
                     NET GAJI
                   </th>
-                  <th className="px-4 py-4 text-center rounded-tr-xl">AKSI</th>
+                  <th className="px-4 py-4 text-center rounded-tr-xl print:hidden">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={12} className="px-6 py-12 text-center">
+                    <td colSpan={14} className="px-6 py-12 text-center">
                       <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
                     </td>
                   </tr>
                 ) : dataRekapan.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={12}
+                      colSpan={14}
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       Tidak ada data karyawan aktif.
@@ -528,6 +569,12 @@ export default function RekapanGajiPage() {
                         <td className="px-4 py-4 text-right text-papua-red">
                           {formatRupiah(Number(data.dendaKostum) || 0)}
                         </td>
+                        <td className="px-4 py-4 text-right text-papua-red">
+                          {formatRupiah(Number(data.kasbonMakanan) || 0)}
+                        </td>
+                        <td className="px-4 py-4 text-right text-papua-red">
+                          {formatRupiah(Number(data.potonganBulanan) || 0)}
+                        </td>
                         <td className="px-4 py-4 text-right text-amber-600 font-medium">
                           {formatRupiah(Number(data.panjar) || 0)}
                         </td>
@@ -543,7 +590,7 @@ export default function RekapanGajiPage() {
                         <td className="px-4 py-4 text-right font-bold text-papua-green text-sm">
                           {formatRupiah(netGaji)}
                         </td>
-                        <td className="px-4 py-4 text-center flex items-center justify-center gap-2">
+                        <td className="px-4 py-4 text-center flex items-center justify-center gap-2 print:hidden">
                           <button
                             onClick={() => openModalKalkulator(data)}
                             className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-papua-primary rounded text-xs font-bold transition-colors"
@@ -597,6 +644,12 @@ export default function RekapanGajiPage() {
                     <td className="px-4 py-4 text-right text-red-300">
                       {formatRupiah(totalTerlambat)}
                     </td>
+                    <td className="px-4 py-4 text-right text-red-300">
+                      {formatRupiah(totalKasbonMakanan)}
+                    </td>
+                    <td className="px-4 py-4 text-right text-red-300">
+                      {formatRupiah(totalPotonganBulanan)}
+                    </td>
                     <td className="px-4 py-4 text-right text-amber-300">
                       {formatRupiah(totalPanjar)}
                     </td>
@@ -612,7 +665,7 @@ export default function RekapanGajiPage() {
                     <td className="px-4 py-4 text-right text-green-300">
                       {formatRupiah(totalNetGajiKeseluruhan)}
                     </td>
-                    <td className="px-4 py-4 rounded-br-xl"></td>
+                    <td className="px-4 py-4 rounded-br-xl print:hidden"></td>
                   </tr>
                 )}
               </tbody>
@@ -777,6 +830,34 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Kasbon Makanan (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="kasbonMakanan"
+                          type="number"
+                          value={activeKaryawan.kasbonMakanan || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
+
+                    <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Potongan Bulanan (Rp)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
+                        <input
+                          name="potonganBulanan"
+                          type="number"
+                          value={activeKaryawan.potonganBulanan || 0}
+                          onChange={handleInputChange}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-papua-primary transition-all font-medium"
+                        />
+                      </div>
+                    </label>
+
+                    <label className="block text-sm">
                       <div className="text-xs font-bold text-gray-600 mb-1">Panjar (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium text-sm pointer-events-none">Rp</span>
@@ -869,8 +950,10 @@ export default function RekapanGajiPage() {
                   const totalBonus = Number(cetakData.lembur) + Number(cetakData.thr) + Number(cetakData.homestay);
                   const gajiBruto = Number(cetakData.gajiPokok) + totalBonus;
                   const potonganList = [
-                    { label: "Kasbon Makanan", value: Number(cetakData.kasbonLama) || 0 },
-                    { label: "Potongan Bulanan", value: Number(cetakData.dendaKostum) || 0 },
+                    { label: "Kasbon Lama", value: Number(cetakData.kasbonLama) || 0 },
+                    { label: "Terlambat / Kostum", value: Number(cetakData.dendaKostum) || 0 },
+                    { label: "Kasbon Makanan", value: Number(cetakData.kasbonMakanan) || 0 },
+                    { label: "Potongan Bulanan", value: Number(cetakData.potonganBulanan) || 0 },
                     { label: "Panjar", value: Number(cetakData.panjar) || 0 },
                     { label: "Tidak Hadir", value: Number(cetakData.tidakHadir) || 0 },
                   ];
@@ -997,28 +1080,28 @@ export default function RekapanGajiPage() {
                             </thead>
                             <tbody>
                               <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Makanan</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Lama</td>
                                 <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonLama) || 0)}</td>
                               </tr>
                               <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">2. Potongan Bulanan</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">2. Terlambat / Kostum</td>
                                 <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.dendaKostum) || 0)}</td>
                               </tr>
                               <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">3. Panjar</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">3. Kasbon Makanan</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonMakanan) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">4. Potongan Bulanan</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.potonganBulanan) || 0)}</td>
+                              </tr>
+                              <tr>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">5. Panjar</td>
                                 <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.panjar) || 0)}</td>
                               </tr>
                               <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">4. Tidak Hadir</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5">6. Tidak Hadir</td>
                                 <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.tidakHadir) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
                               </tr>
                               <tr className="font-bold bg-orange-50/50">
                                 <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
@@ -1071,8 +1154,10 @@ export default function RekapanGajiPage() {
           const gajiBruto = Number(cetakData.gajiPokok) + totalBonus;
           
           const potonganList = [
-            { label: "Kasbon Makanan", value: Number(cetakData.kasbonLama) || 0 },
-            { label: "Potongan Bulanan", value: Number(cetakData.dendaKostum) || 0 },
+            { label: "Kasbon Lama", value: Number(cetakData.kasbonLama) || 0 },
+            { label: "Terlambat / Kostum", value: Number(cetakData.dendaKostum) || 0 },
+            { label: "Kasbon Makanan", value: Number(cetakData.kasbonMakanan) || 0 },
+            { label: "Potongan Bulanan", value: Number(cetakData.potonganBulanan) || 0 },
             { label: "Panjar", value: Number(cetakData.panjar) || 0 },
             { label: "Tidak Hadir", value: Number(cetakData.tidakHadir) || 0 },
           ];
@@ -1199,28 +1284,28 @@ export default function RekapanGajiPage() {
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Makanan</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Lama</td>
                         <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonLama) || 0)}</td>
                       </tr>
                       <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">2. Potongan Bulanan</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">2. Terlambat / Kostum</td>
                         <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.dendaKostum) || 0)}</td>
                       </tr>
                       <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">3. Panjar</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">3. Kasbon Makanan</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonMakanan) || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">4. Potongan Bulanan</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.potonganBulanan) || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">5. Panjar</td>
                         <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.panjar) || 0)}</td>
                       </tr>
                       <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">4. Tidak Hadir</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5">6. Tidak Hadir</td>
                         <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.tidakHadir) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
                       </tr>
                       <tr className="font-bold bg-orange-50/50">
                         <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
@@ -1262,8 +1347,8 @@ export default function RekapanGajiPage() {
       <style jsx global>{`
         @media print {
           @page {
-            size: portrait;
-            margin: 1cm;
+            size: ${isCetakTabel ? 'landscape' : 'portrait'};
+            margin: ${isCetakTabel ? '0.5cm' : '1cm'};
           }
           body {
             background-color: white !important;
@@ -1299,6 +1384,11 @@ export default function RekapanGajiPage() {
           .slip-container:last-child {
             page-break-after: auto;
           }
+          ${isCetakTabel ? `
+          table {
+            zoom: 0.65;
+          }
+          ` : ''}
         }
       `}</style>
     </div>
