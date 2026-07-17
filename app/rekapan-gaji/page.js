@@ -411,8 +411,8 @@ export default function RekapanGajiPage() {
     <div className={`w-full px-4 sm:px-6 lg:px-8 mx-auto pb-12 ${isCetakTabel ? "print:m-0 print:p-0" : "print:mx-0 print:px-0 print:pb-0"}`}>
       {/* ================================================================= */}
       {/* ================== BAGIAN UI WEB (TIDAK TERCETAK) ================== */}
-      <div className={isCetakTabel ? "print:block w-full" : "print:hidden"}>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4 print:hidden">
+      <div className="print:hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-papua-primary">
               Rekapan & Slip Gaji
@@ -431,20 +431,20 @@ export default function RekapanGajiPage() {
                   setTimeout(() => setIsCetakTabel(false), 500);
                 }, 500);
               }}
-              className="flex items-center gap-2 bg-papua-primary hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm print:hidden"
+              className="flex items-center gap-2 bg-papua-primary hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
             >
               <Printer className="w-4 h-4" /> Cetak Tabel Rekapan
             </button>
             <button
               onClick={handleCetakSemua}
-              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm print:hidden"
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
             >
               <Printer className="w-4 h-4" /> Cetak Semua Slip
             </button>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
+        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-2 text-gray-700 font-medium">
             <Calculator className="w-5 h-5 text-papua-primary" />
             <span>Kalkulasi Periode:</span>
@@ -477,7 +477,7 @@ export default function RekapanGajiPage() {
 
         {status.message && (
           <div
-            className={`p-4 rounded-lg mb-6 flex items-center gap-3 border print:hidden ${
+            className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${
               status.type === "error"
                 ? "bg-papua-red/10 border-papua-red/30 text-papua-red"
                 : "bg-papua-green/10 border-papua-green/30 text-papua-green"
@@ -488,10 +488,10 @@ export default function RekapanGajiPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden print:border-none print:shadow-none print:w-full">
-          <div className="overflow-x-auto print:overflow-visible">
-            <table className="w-full text-left text-xs whitespace-nowrap print:text-[10px]">
-              <thead className="bg-gray-800 text-white font-medium print:bg-gray-800 print:text-white">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs whitespace-nowrap">
+              <thead className="bg-gray-800 text-white font-medium">
                 <tr>
                   <th className="px-4 py-4 rounded-tl-xl">NAMA KARYAWAN</th>
                   <th className="px-4 py-4 text-center">ABSEN</th>
@@ -514,7 +514,7 @@ export default function RekapanGajiPage() {
                   <th className="px-4 py-4 text-right font-bold text-green-300">
                     NET GAJI
                   </th>
-                  <th className="px-4 py-4 text-center rounded-tr-xl print:hidden">AKSI</th>
+                  <th className="px-4 py-4 text-center rounded-tr-xl">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -590,7 +590,7 @@ export default function RekapanGajiPage() {
                         <td className="px-4 py-4 text-right font-bold text-papua-green text-sm">
                           {formatRupiah(netGaji)}
                         </td>
-                        <td className="px-4 py-4 text-center flex items-center justify-center gap-2 print:hidden">
+                        <td className="px-4 py-4 text-center flex items-center justify-center gap-2">
                           <button
                             onClick={() => openModalKalkulator(data)}
                             className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-papua-primary rounded text-xs font-bold transition-colors"
@@ -665,7 +665,7 @@ export default function RekapanGajiPage() {
                     <td className="px-4 py-4 text-right text-green-300">
                       {formatRupiah(totalNetGajiKeseluruhan)}
                     </td>
-                    <td className="px-4 py-4 rounded-br-xl print:hidden"></td>
+                    <td className="px-4 py-4 rounded-br-xl"></td>
                   </tr>
                 )}
               </tbody>
@@ -673,6 +673,115 @@ export default function RekapanGajiPage() {
           </div>
         </div>
       </div>
+
+      {/* ================================================================= */}
+      {/* ====== CETAK TABEL REKAPAN - POTRET (HANYA TAMPIL SAAT PRINT) ====== */}
+      {isCetakTabel && (
+        <div className="hidden print:block font-sans text-black bg-white w-full cetak-tabel-potret">
+          {/* Header Perusahaan */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '3px solid #8f3d1b', paddingBottom: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <h1 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', fontFamily: 'serif' }}>RUMAH ETNIK PAPUA</h1>
+              <p style={{ fontSize: '10px', marginBottom: '1px' }}>Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
+              <p style={{ fontSize: '10px' }}>No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
+            </div>
+            <div style={{ width: '80px', display: 'flex', justifyContent: 'flex-end' }}>
+              <img src="/logo.jpg" alt="logo" style={{ width: '70px' }} onError={(e) => { e.target.style.display = 'none'; }} />
+            </div>
+          </div>
+
+          {/* Judul */}
+          <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#8f3d1b', textTransform: 'uppercase' }}>Rekapan Gaji Karyawan</h2>
+            <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#333' }}>Periode: {namaBulan[bulan - 1]} {tahun}</p>
+          </div>
+
+          {/* Tabel Rekapan Potret */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8.5px', tableLayout: 'fixed' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#8f3d1b', color: 'white' }}>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'center', width: '22px' }}>No</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'left' }}>Nama Karyawan</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'center', width: '30px' }}>Absen</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Gaji Pokok</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Lembur</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Bonus</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Tdk Hadir</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Kasbon</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Terlambat</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Ksb Mkn</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Pot. Bln</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Panjar</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>Tot. Pot.</th>
+                <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ccffcc' }}>Net Gaji</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dataRekapan.map((data, idx) => {
+                const lemburVal = Number(data.lembur) || 0;
+                const bonusVal = (Number(data.thr) || 0) + (Number(data.homestay) || 0);
+                const totalPotonganKhusus = hitungPotongan(data);
+                const netGaji = hitungNetGaji(data);
+                return (
+                  <tr key={data.idKaryawan} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#faf6f3' }}>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'center' }}>{idx + 1}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.namaKaryawan}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'center' }}>{data.hariHadir}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(data.gajiPokok)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(lemburVal)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(bonusVal)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.tidakHadir) || 0)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.kasbonLama) || 0)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.dendaKostum) || 0)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.kasbonMakanan) || 0)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.potonganBulanan) || 0)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.panjar) || 0)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', fontWeight: 'bold', color: '#c62828' }}>{formatAngkaSaja(totalPotonganKhusus)}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', fontWeight: 'bold', color: '#2e7d32' }}>{formatAngkaSaja(netGaji)}</td>
+                  </tr>
+                );
+              })}
+              {/* Baris TOTAL */}
+              <tr style={{ backgroundColor: '#8f3d1b', color: 'white', fontWeight: 'bold' }}>
+                <td colSpan={3} style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'center' }}>TOTAL</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(totalGajiPokok)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(totalLembur)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(totalBonusVal)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalTidakHadir)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalKasbon)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalTerlambat)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalKasbonMakanan)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalPotonganBulanan)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalPanjar)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalPotonganKeseluruhan)}</td>
+                <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ccffcc' }}>{formatAngkaSaja(totalNetGajiKeseluruhan)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Ringkasan Total */}
+          <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ border: '2px solid #8f3d1b', padding: '8px 16px', textAlign: 'right', minWidth: '280px' }}>
+              <div style={{ fontSize: '10px', color: '#666', marginBottom: '2px' }}>Total Pengeluaran Gaji Periode {namaBulan[bulan - 1]} {tahun}</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#8f3d1b' }}>Rp{formatAngkaSaja(totalNetGajiKeseluruhan)}</div>
+            </div>
+          </div>
+
+          {/* Tanda Tangan */}
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+            <div style={{ textAlign: 'center', width: '180px' }}>
+              <p>Dibuat oleh,</p>
+              <div style={{ height: '50px' }}></div>
+              <p style={{ borderTop: '1px solid #333', paddingTop: '4px', fontWeight: 'bold' }}>Admin Keuangan</p>
+            </div>
+            <div style={{ textAlign: 'center', width: '180px' }}>
+              <p>Mengetahui,</p>
+              <div style={{ height: '50px' }}></div>
+              <p style={{ borderTop: '1px solid #333', paddingTop: '4px', fontWeight: 'bold' }}>Pimpinan</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && activeKaryawan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
@@ -1347,14 +1456,15 @@ export default function RekapanGajiPage() {
       <style jsx global>{`
         @media print {
           @page {
-            size: ${isCetakTabel ? 'landscape' : 'portrait'};
-            margin: ${isCetakTabel ? '0.5cm' : '1cm'};
+            size: portrait;
+            margin: ${isCetakTabel ? '0.4cm 0.3cm' : '1cm'};
           }
           body {
             background-color: white !important;
             margin: 0 !important;
             padding: 0 !important;
             -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           html,
           body,
@@ -1384,11 +1494,14 @@ export default function RekapanGajiPage() {
           .slip-container:last-child {
             page-break-after: auto;
           }
-          ${isCetakTabel ? `
-          table {
-            zoom: 0.65;
+          .cetak-tabel-potret {
+            width: 100% !important;
+            padding: 0 !important;
           }
-          ` : ''}
+          .cetak-tabel-potret table {
+            width: 100% !important;
+            table-layout: fixed !important;
+          }
         }
       `}</style>
     </div>
