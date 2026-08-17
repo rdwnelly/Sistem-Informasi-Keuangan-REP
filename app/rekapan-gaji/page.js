@@ -591,7 +591,7 @@ export default function RekapanGajiPage() {
 
       msg += `\n*Terima kasih atas dedikasi dan kerja keras Anda!*`;
 
-      // Render slip gaji ke PDF base64 (dimensi presisi A4 794px x 1123px)
+      // 1. Render & unduh file PDF slip gaji secara otomatis (dimensi presisi A4 794px x 1123px)
       setDataCetakList([data]);
       await new Promise((resolve) => setTimeout(resolve, 600));
 
@@ -615,53 +615,16 @@ export default function RekapanGajiPage() {
 
       const fileName = `Slip_Gaji_${data.namaKaryawan.replace(/\s+/g, '_')}_${namaBulanArr[(data.periodeBulan || bulan) - 1]}_${data.periodeTahun || tahun}.pdf`;
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(fileName); // Mengunduh file PDF ke komputer admin
 
-      const pdfBase64Data = pdf.output('datauristring');
-      const base64String = pdfBase64Data.split(',')[1];
+      // 2. Langsung buka WhatsApp Web di tab baru dengan teks pesan terisi otomatis
+      const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
 
-      // 1. Coba kirim dokumen PDF langsung melalui WhatsApp Bot Microservice
-      let sentViaBot = false;
-      try {
-        const botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': '121DW4N311y'
-          },
-          body: JSON.stringify({
-            nomor: cleanPhone,
-            pesan: msg,
-            fileName: fileName,
-            pdfBase64: base64String
-          })
-        });
-
-        if (botResponse.ok) {
-          const resData = await botResponse.json();
-          if (resData.status === 'sukses' || resData.success) {
-            sentViaBot = true;
-          }
-        }
-      } catch (botErr) {
-        console.warn("Bot service not reachable or failed:", botErr);
-      }
-
-      if (sentViaBot) {
-        setStatus({
-          type: "success",
-          message: `Dokumen PDF Slip Gaji & pesan berhasil dikirim langsung ke WhatsApp ${data.namaKaryawan}!`,
-        });
-      } else {
-        // 2. Fallback jika bot offline / belum scan QR: Unduh PDF + Buka WA Web
-        pdf.save(fileName);
-        const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, '_blank');
-
-        setStatus({
-          type: "success",
-          message: `Membuka WhatsApp Web & mengunduh file ${fileName}. Silakan lampirkan file PDF tersebut di WhatsApp Web!`,
-        });
-      }
+      setStatus({
+        type: "success",
+        message: `File PDF (${fileName}) berhasil diunduh & WhatsApp Web dibuka! Silakan melampirkan file PDF tersebut di WhatsApp Web.`,
+      });
 
     } catch (error) {
       console.error("Error sending WA:", error);
