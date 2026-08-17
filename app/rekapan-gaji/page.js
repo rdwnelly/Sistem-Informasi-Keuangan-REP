@@ -591,7 +591,7 @@ export default function RekapanGajiPage() {
 
       msg += `\n*Terima kasih atas dedikasi dan kerja keras Anda!*`;
 
-      // Unduh file PDF secara otomatis untuk pengguna
+      // Unduh file PDF secara otomatis untuk pengguna dengan dimensi A4 presisi (794px x 1123px)
       setDataCetakList([data]);
       await new Promise((resolve) => setTimeout(resolve, 600));
 
@@ -599,7 +599,7 @@ export default function RekapanGajiPage() {
       if (slipElement) {
         const cetakArea = slipElement.parentElement;
         const originalClasses = cetakArea.className;
-        cetakArea.className = "print:block font-sans text-black bg-white w-full fixed top-0 left-[-9999px] z-[-1]";
+        cetakArea.className = "print:block font-sans text-black bg-white w-[794px] min-h-[1123px] p-6 fixed top-0 left-[-9999px] z-[-1]";
 
         const canvas = await html2canvas(slipElement, { scale: 2, useCORS: true });
         cetakArea.className = originalClasses;
@@ -607,11 +607,13 @@ export default function RekapanGajiPage() {
 
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        const pdfWidth = pdf.internal.pageSize.getWidth(); // 210
+        const pdfPageHeight = pdf.internal.pageSize.getHeight(); // 297
+        let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        if (pdfHeight > pdfPageHeight) pdfHeight = pdfPageHeight;
 
         const fileName = `Slip_Gaji_${data.namaKaryawan.replace(/\s+/g, '_')}_${namaBulanArr[(data.periodeBulan || bulan) - 1]}_${data.periodeTahun || tahun}.pdf`;
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(fileName);
       }
 
@@ -1654,7 +1656,7 @@ export default function RekapanGajiPage() {
           const strTahun = (cetakData.periodeTahun || tahun).toString();
           
           return (
-            <div key={idx} className="slip-container w-full pt-4 pb-6 px-6 box-border font-sans text-black">
+            <div key={idx} className="slip-container w-[794px] min-h-[1123px] p-8 mx-auto box-border font-sans text-black bg-white flex flex-col justify-between">
               {/* Header Kop Surat */}
               <div className="flex items-center justify-between mb-5 border-b-4 border-[#8f3d1b] pb-4">
                 <div className="flex-1">
