@@ -542,7 +542,7 @@ export default function RekapanGajiPage() {
     }
 
     setIsSendingWa(true);
-    setStatus({ type: "info", message: "Menyiapkan slip gaji dan membuka WhatsApp Web..." });
+    setStatus({ type: "info", message: "Memproses dokumen PDF slip gaji & mengirim ke WhatsApp..." });
 
     try {
       const namaBulanArr = [
@@ -591,47 +591,85 @@ export default function RekapanGajiPage() {
 
       msg += `\n*Terima kasih atas dedikasi dan kerja keras Anda!*`;
 
-      // Unduh file PDF secara otomatis untuk pengguna dengan dimensi A4 presisi (794px x 1123px)
+      // Render slip gaji ke PDF base64 (dimensi presisi A4 794px x 1123px)
       setDataCetakList([data]);
       await new Promise((resolve) => setTimeout(resolve, 600));
 
       const slipElement = document.querySelector('.slip-container');
-      if (slipElement) {
-        const cetakArea = slipElement.parentElement;
-        const originalClasses = cetakArea.className;
-        cetakArea.className = "print:block font-sans text-black bg-white w-[794px] min-h-[1123px] p-6 fixed top-0 left-[-9999px] z-[-1]";
+      if (!slipElement) throw new Error('Elemen slip gaji tidak ditemukan');
 
-        const canvas = await html2canvas(slipElement, { scale: 2, useCORS: true });
-        cetakArea.className = originalClasses;
-        setDataCetakList([]);
+      const cetakArea = slipElement.parentElement;
+      const originalClasses = cetakArea.className;
+      cetakArea.className = "print:block font-sans text-black bg-white w-[794px] min-h-[1123px] p-6 fixed top-0 left-[-9999px] z-[-1]";
 
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth(); // 210
-        const pdfPageHeight = pdf.internal.pageSize.getHeight(); // 297
-        let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        if (pdfHeight > pdfPageHeight) pdfHeight = pdfPageHeight;
+      const canvas = await html2canvas(slipElement, { scale: 2, useCORS: true });
+      cetakArea.className = originalClasses;
+      setDataCetakList([]);
 
-        const fileName = `Slip_Gaji_${data.namaKaryawan.replace(/\s+/g, '_')}_${namaBulanArr[(data.periodeBulan || bulan) - 1]}_${data.periodeTahun || tahun}.pdf`;
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(fileName);
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth(); // 210
+      const pdfPageHeight = pdf.internal.pageSize.getHeight(); // 297
+      let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      if (pdfHeight > pdfPageHeight) pdfHeight = pdfPageHeight;
+
+      const fileName = `Slip_Gaji_${data.namaKaryawan.replace(/\s+/g, '_')}_${namaBulanArr[(data.periodeBulan || bulan) - 1]}_${data.periodeTahun || tahun}.pdf`;
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+      const pdfBase64Data = pdf.output('datauristring');
+      const base64String = pdfBase64Data.split(',')[1];
+
+      // 1. Coba kirim dokumen PDF langsung melalui WhatsApp Bot Microservice
+      let sentViaBot = false;
+      try {
+        const botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': '121DW4N311y'
+          },
+          body: JSON.stringify({
+            nomor: cleanPhone,
+            pesan: msg,
+            fileName: fileName,
+            pdfBase64: base64String
+          })
+        });
+
+        if (botResponse.ok) {
+          const resData = await botResponse.json();
+          if (resData.status === 'sukses' || resData.success) {
+            sentViaBot = true;
+          }
+        }
+      } catch (botErr) {
+        console.warn("Bot service not reachable or failed:", botErr);
       }
 
-      // Langsung buka WhatsApp Web di tab baru
-      const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+      if (sentViaBot) {
+        setStatus({
+          type: "success",
+          message: `Dokumen PDF Slip Gaji & pesan berhasil dikirim langsung ke WhatsApp ${data.namaKaryawan}!`,
+        });
+      } else {
+        // 2. Fallback jika bot offline / belum scan QR: Unduh PDF + Buka WA Web
+        pdf.save(fileName);
+        const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
 
-      setStatus({
-        type: "success",
-        message: `Membuka WhatsApp Web untuk ${data.namaKaryawan} & mengunduh PDF slip gaji!`,
-      });
+        setStatus({
+          type: "success",
+          message: `Membuka WhatsApp Web & mengunduh file ${fileName}. Silakan lampirkan file PDF tersebut di WhatsApp Web!`,
+        });
+      }
+
     } catch (error) {
       console.error("Error sending WA:", error);
       setStatus({ type: "error", message: `Gagal memproses pengiriman WA: ${error.message}` });
       setDataCetakList([]);
     } finally {
       setIsSendingWa(false);
-      setTimeout(() => setStatus({ type: "", message: "" }), 5000);
+      setTimeout(() => setStatus({ type: "", message: "" }), 6000);
     }
   };
 
