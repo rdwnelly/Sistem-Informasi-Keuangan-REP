@@ -619,30 +619,43 @@ export default function RekapanGajiPage() {
       const pdfBase64Data = pdf.output('datauristring');
       const base64String = pdfBase64Data.split(',')[1];
 
-      // 2. Kirim dokumen PDF langsung melalui WhatsApp terhubung
-      const botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': '121DW4N311y'
-        },
-        body: JSON.stringify({
-          nomor: cleanPhone,
-          pesan: msg,
-          fileName: fileName,
-          pdfBase64: base64String
-        })
-      });
+      // 2. Kirim dokumen PDF langsung melalui WhatsApp terhubung dengan retry otomatis
+      let resData = null;
+      let botResponse = null;
 
-      const resData = await botResponse.json();
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': '121DW4N311y'
+            },
+            body: JSON.stringify({
+              nomor: cleanPhone,
+              pesan: msg,
+              fileName: fileName,
+              pdfBase64: base64String
+            })
+          });
+          resData = await botResponse.json();
+          if (botResponse.ok && (resData.status === 'sukses' || resData.success)) {
+            break;
+          }
+          if (attempt < 2) await new Promise((r) => setTimeout(r, 1500));
+        } catch (err) {
+          if (attempt === 2) throw err;
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+      }
 
-      if (botResponse.ok && (resData.status === 'sukses' || resData.success)) {
+      if (botResponse && botResponse.ok && (resData?.status === 'sukses' || resData?.success)) {
         setStatus({
           type: "success",
           message: `Dokumen PDF Slip Gaji (${fileName}) berhasil dikirim ke WhatsApp ${data.namaKaryawan}!`,
         });
       } else {
-        throw new Error(resData.error || 'Gagal mengirim pesan dari WhatsApp Bot');
+        throw new Error(resData?.error || 'Gagal mengirim pesan dari WhatsApp Bot');
       }
 
     } catch (error) {
