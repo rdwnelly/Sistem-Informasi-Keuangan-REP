@@ -181,10 +181,10 @@ export default function RekapanGajiPage() {
         const pDate = new Date(p.tanggal);
         if (pDate.getMonth() + 1 === bulan && pDate.getFullYear() === tahun) {
           rekapPanjar[p.karyawanId] = (rekapPanjar[p.karyawanId] || 0) + p.nominal;
-          
+
           const tglStr = pDate.toLocaleDateString("id-ID", { day: '2-digit', month: '2-digit' });
           const noteText = `Panjar ${tglStr}: Rp${new Intl.NumberFormat("id-ID").format(p.nominal)}`;
-          
+
           if (!catatanPanjarObj[p.karyawanId]) catatanPanjarObj[p.karyawanId] = [];
           catatanPanjarObj[p.karyawanId].push(noteText);
         }
@@ -470,7 +470,7 @@ export default function RekapanGajiPage() {
     setActiveKaryawan((prev) => {
       const updatedValue = name === "catatan" ? value : Number(value);
       const updated = { ...prev, [name]: updatedValue };
-      
+
       if (name === "hariHadir") {
         const hari = Number(value);
         if (hari < 28) {
@@ -480,7 +480,7 @@ export default function RekapanGajiPage() {
           updated.tidakHadir = 0;
         }
       }
-      
+
       return updated;
     });
   };
@@ -786,11 +786,10 @@ export default function RekapanGajiPage() {
 
         {status.message && (
           <div
-            className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${
-              status.type === "error"
-                ? "bg-papua-red/10 border-papua-red/30 text-papua-red"
-                : "bg-papua-green/10 border-papua-green/30 text-papua-green"
-            }`}
+            className={`p-4 rounded-lg mb-6 flex items-center gap-3 border ${status.type === "error"
+              ? "bg-papua-red/10 border-papua-red/30 text-papua-red"
+              : "bg-papua-green/10 border-papua-green/30 text-papua-green"
+              }`}
           >
             <CheckCircle2 className="w-5 h-5 shrink-0" />
             <span className="text-sm font-medium">{status.message}</span>
@@ -1213,14 +1212,14 @@ export default function RekapanGajiPage() {
             {/* Body */}
             <div className="p-6 overflow-y-auto space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                
+
                 {/* PEMASUKAN SECTION */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
                     <TrendingUp className="w-4 h-4 text-papua-green" />
                     <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Pemasukan</h4>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <label className="block text-sm">
                       <div className="text-xs font-bold text-gray-600 mb-1">Hari Hadir (Hari)</div>
@@ -1484,15 +1483,15 @@ export default function RekapanGajiPage() {
                 {(() => {
                   const cetakData = previewData;
                   const { incomeList, deductionList, totalPenghasilan, totalPotongan, netGajiCetak, maxRows } = getSlipLists(cetakData);
-                  
+
                   const calculationDate = cetakData.tanggalKalkulasi ? new Date(cetakData.tanggalKalkulasi) : new Date();
                   const strCalculationDate = `${calculationDate.getDate()} ${namaBulan[calculationDate.getMonth()]} ${calculationDate.getFullYear()}`;
-                  
+
                   const urutanKaryawan = dataRekapan.findIndex(k => k.idKaryawan === cetakData.idKaryawan) + 1;
                   const romawiBulan = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
                   const strBulanRomawi = romawiBulan[(cetakData.periodeBulan || bulan) - 1];
                   const strTahun = (cetakData.periodeTahun || tahun).toString();
-                  
+
                   return (
                     <div className="w-full pt-3 pb-6 px-4 font-sans text-black">
                       {/* Header Logo & Perusahaan */}
@@ -1687,15 +1686,15 @@ export default function RekapanGajiPage() {
       <div className="hidden print:block font-sans text-black bg-white w-full">
         {dataCetakList.map((cetakData, idx) => {
           const { incomeList, deductionList, totalPenghasilan, totalPotongan, netGajiCetak, maxRows } = getSlipLists(cetakData);
-          
+
           const calculationDate = cetakData.tanggalKalkulasi ? new Date(cetakData.tanggalKalkulasi) : new Date();
           const strCalculationDate = `${calculationDate.getDate()} ${namaBulan[calculationDate.getMonth()]} ${calculationDate.getFullYear()}`;
-          
+
           const urutanKaryawan = dataRekapan.findIndex(k => k.idKaryawan === cetakData.idKaryawan) + 1;
           const romawiBulan = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
           const strBulanRomawi = romawiBulan[(cetakData.periodeBulan || bulan) - 1];
           const strTahun = (cetakData.periodeTahun || tahun).toString();
-          
+
           return (
             <div key={idx} className="slip-container w-[794px] min-h-[1123px] p-8 mx-auto box-border font-sans text-black bg-white flex flex-col justify-between">
               {/* Header Kop Surat */}
@@ -1897,22 +1896,20 @@ export default function RekapanGajiPage() {
               <button
                 type="button"
                 onClick={() => { setActiveTab("custom"); setEditingItem(null); setEditingStandardKey(null); }}
-                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
-                  activeTab === "custom"
-                    ? "border-emerald-600 text-emerald-700 bg-white rounded-t-xl border-t border-x border-gray-200"
-                    : "border-transparent text-gray-500 hover:text-gray-800"
-                }`}
+                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${activeTab === "custom"
+                  ? "border-emerald-600 text-emerald-700 bg-white rounded-t-xl border-t border-x border-gray-200"
+                  : "border-transparent text-gray-500 hover:text-gray-800"
+                  }`}
               >
                 <PlusCircle className="w-3.5 h-3.5" /> Item Custom Tambahan ({customKomponen.length})
               </button>
               <button
                 type="button"
                 onClick={() => { setActiveTab("standard"); setEditingItem(null); setEditingStandardKey(null); }}
-                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
-                  activeTab === "standard"
-                    ? "border-emerald-600 text-emerald-700 bg-white rounded-t-xl border-t border-x border-gray-200"
-                    : "border-transparent text-gray-500 hover:text-gray-800"
-                }`}
+                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${activeTab === "standard"
+                  ? "border-emerald-600 text-emerald-700 bg-white rounded-t-xl border-t border-x border-gray-200"
+                  : "border-transparent text-gray-500 hover:text-gray-800"
+                  }`}
               >
                 <Sliders className="w-3.5 h-3.5" /> Edit Item Bawaan Sistem (9)
               </button>
@@ -1956,22 +1953,20 @@ export default function RekapanGajiPage() {
                           <button
                             type="button"
                             onClick={() => setEditingItem({ ...editingItem, tipe: "pemasukan" })}
-                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                              editingItem.tipe === "pemasukan"
-                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                            }`}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${editingItem.tipe === "pemasukan"
+                              ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                              }`}
                           >
                             <TrendingUp className="w-3.5 h-3.5" /> Gaji Bertambah (+ Pemasukan)
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingItem({ ...editingItem, tipe: "potongan" })}
-                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                              editingItem.tipe === "potongan"
-                                ? "bg-red-600 text-white border-red-600 shadow-sm"
-                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                            }`}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${editingItem.tipe === "potongan"
+                              ? "bg-red-600 text-white border-red-600 shadow-sm"
+                              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                              }`}
                           >
                             <TrendingDown className="w-3.5 h-3.5" /> Gaji Terpotong (- Potongan)
                           </button>
@@ -2016,22 +2011,20 @@ export default function RekapanGajiPage() {
                           <button
                             type="button"
                             onClick={() => setNewTipeItem("pemasukan")}
-                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                              newTipeItem === "pemasukan"
-                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                            }`}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${newTipeItem === "pemasukan"
+                              ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                              }`}
                           >
                             <TrendingUp className="w-3.5 h-3.5" /> Gaji Bertambah (+ Pemasukan)
                           </button>
                           <button
                             type="button"
                             onClick={() => setNewTipeItem("potongan")}
-                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                              newTipeItem === "potongan"
-                                ? "bg-red-600 text-white border-red-600 shadow-sm"
-                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                            }`}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${newTipeItem === "potongan"
+                              ? "bg-red-600 text-white border-red-600 shadow-sm"
+                              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                              }`}
                           >
                             <TrendingDown className="w-3.5 h-3.5" /> Gaji Terpotong (- Potongan)
                           </button>
@@ -2060,16 +2053,14 @@ export default function RekapanGajiPage() {
                         {customKomponen.map((item) => (
                           <div
                             key={item.id}
-                            className={`p-3 flex items-center justify-between transition-colors ${
-                              editingItem?.id === item.id ? "bg-amber-50" : "bg-white hover:bg-gray-50"
-                            }`}
+                            className={`p-3 flex items-center justify-between transition-colors ${editingItem?.id === item.id ? "bg-amber-50" : "bg-white hover:bg-gray-50"
+                              }`}
                           >
                             <div className="flex items-center gap-2.5">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                item.tipe === "pemasukan"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.tipe === "pemasukan"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-red-100 text-red-700"
+                                }`}>
                                 {item.tipe === "pemasukan" ? "+ Pemasukan" : "- Potongan"}
                               </span>
                               <span className="text-sm font-bold text-gray-800">{item.nama}</span>
@@ -2162,9 +2153,8 @@ export default function RekapanGajiPage() {
                           ) : (
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2.5">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  item.tipe === "pemasukan" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                }`}>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.tipe === "pemasukan" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                  }`}>
                                   {item.tipe === "pemasukan" ? "+ Pemasukan" : "- Potongan"}
                                 </span>
                                 <div>
