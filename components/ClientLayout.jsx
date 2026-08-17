@@ -151,7 +151,8 @@ export default function ClientLayout({ children }) {
     navigator.serviceWorker
       .register(swUrl)
       .then((reg) => {
-        console.log("Service worker registered:", reg.scope);
+        reg.update();
+        console.log("Service worker registered & updated:", reg.scope);
       })
       .catch((err) => {
         console.warn("Service worker registration failed:", err);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sik-rep-cache-v1";
+const CACHE_NAME = "sik-rep-cache-v3";
 const PRECACHE_URLS = [
   "/",
   "/manifest.json",
@@ -10,7 +10,7 @@ const PRECACHE_URLS = [
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)),
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
   );
 });
 
@@ -19,10 +19,13 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        }),
-      ),
-    ),
+          if (key !== CACHE_NAME) {
+            console.log("Deleting old PWA cache:", key);
+            return caches.delete(key);
+          }
+        })
+      )
+    )
   );
   self.clients.claim();
 });
@@ -30,21 +33,47 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   // Only handle GET requests
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+  const isDocument =
+    event.request.mode === "navigate" ||
+    (event.request.headers.get("accept") &&
+      event.request.headers.get("accept").includes("text/html"));
+  const isNextAsset = url.pathname.startsWith("/_next/");
+
+  // Network-First for HTML pages and Next.js assets so new deployments are served immediately
+  if (isDocument || isNextAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === "basic") {
+            const responseClone = response.clone();
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cached) => cached || caches.match("/"));
+        })
+    );
+    return;
+  }
+
+  // Cache-First for static assets (images, fonts, icons)
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          // Put a copy in the cache
-          if (!response || response.status !== 200 || response.type !== "basic")
-            return response;
+      return fetch(event.request).then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
           const responseClone = response.clone();
           caches
             .open(CACHE_NAME)
             .then((cache) => cache.put(event.request, responseClone));
-          return response;
-        })
-        .catch(() => caches.match("/"));
-    }),
+        }
+        return response;
+      });
+    })
   );
 });
