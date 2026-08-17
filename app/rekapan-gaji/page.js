@@ -219,6 +219,7 @@ export default function RekapanGajiPage() {
             namaKaryawan: karyawan.nama,
             hariHadir: tersimpan.hariHadir || 28,
             noHp: karyawan.noHp || tersimpan.noHp || "",
+            rekeningBank: karyawan.rekeningBank || tersimpan.rekeningBank || "",
             customItems: tersimpan.customItems || {},
           };
         }
@@ -243,6 +244,7 @@ export default function RekapanGajiPage() {
           catatan: autoCatatanPanjar,
           isSaved: false,
           noHp: karyawan.noHp || "",
+          rekeningBank: karyawan.rekeningBank || "",
         };
       });
 
@@ -558,6 +560,7 @@ export default function RekapanGajiPage() {
       msg += `------------------------------------------\n`;
       msg += `👤 *Nama:* ${data.namaKaryawan}\n`;
       msg += `💼 *Jabatan:* ${data.jabatan || "KARYAWAN"}\n`;
+      msg += `💳 *Rekening:* ${data.rekeningBank || "-"}\n`;
       msg += `📅 *Periode:* ${periodeStr}\n`;
       msg += `⏱️ *Hari Hadir:* ${data.hariHadir} Hari\n`;
       msg += `------------------------------------------\n\n`;
@@ -1546,6 +1549,11 @@ export default function RekapanGajiPage() {
                               <td className="text-black">{cetakData.jabatan || "KARYAWAN"}</td>
                             </tr>
                             <tr>
+                              <td className="py-1 text-gray-700">Rekening Bank</td>
+                              <td>:</td>
+                              <td className="text-black font-medium">{cetakData.rekeningBank || "-"}</td>
+                            </tr>
+                            <tr>
                               <td className="py-1 text-gray-700">Keterangan Absen</td>
                               <td>:</td>
                               <td className="text-black">{cetakData.hariHadir} Hari Hadir</td>
@@ -1742,6 +1750,11 @@ export default function RekapanGajiPage() {
                       <td className="py-1 text-gray-700">Jabatan</td>
                       <td>:</td>
                       <td className="text-black">{cetakData.jabatan || "KARYAWAN"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 text-gray-700">Rekening Bank</td>
+                      <td>:</td>
+                      <td className="text-black font-medium">{cetakData.rekeningBank || "-"}</td>
                     </tr>
                     <tr>
                       <td className="py-1 text-gray-700">Keterangan Absen</td>
