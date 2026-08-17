@@ -1413,18 +1413,19 @@ export default function RekapanGajiPage() {
                   const strTahun = (cetakData.periodeTahun || tahun).toString();
                   
                   return (
-                    <div className="w-full pt-2 pb-4 px-2 sm:px-4">
-                      <div className="flex items-center justify-between mb-4 border-b-2 border-[#8f3d1b] pb-3">
+                    <div className="w-full pt-3 pb-6 px-4 font-sans text-black">
+                      {/* Header Logo & Perusahaan */}
+                      <div className="flex items-center justify-between mb-5 border-b-4 border-[#8f3d1b] pb-4">
                         <div className="flex-1">
-                          <h1 className="text-lg sm:text-[22px] font-bold mb-1">RUMAH ETNIK PAPUA</h1>
-                          <p className="text-xs sm:text-sm mb-0.5">Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
-                          <p className="text-xs sm:text-sm">No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
+                          <h1 className="text-xl sm:text-2xl font-black mb-1 text-[#8f3d1b] tracking-wider">RUMAH ETNIK PAPUA</h1>
+                          <p className="text-xs sm:text-sm font-semibold mb-0.5 text-gray-800">Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
+                          <p className="text-xs sm:text-sm font-semibold text-gray-800">No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
                         </div>
-                        <div className="w-24 sm:w-36 flex justify-end hidden sm:flex">
+                        <div className="w-28 sm:w-36 flex justify-end">
                           <img
                             src="/logo.jpg"
                             alt="logo"
-                            className="w-20 sm:w-28"
+                            className="w-24 sm:w-32 object-contain"
                             onError={(e) => {
                               e.target.style.display = "none";
                             }}
@@ -1432,130 +1433,138 @@ export default function RekapanGajiPage() {
                         </div>
                       </div>
 
+                      {/* Judul Slip */}
                       <div className="text-center mb-6">
-                        <h2 className="text-xl sm:text-2xl font-bold text-[#8f3d1b]">SLIP GAJI KARYAWAN</h2>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#8f3d1b] tracking-wide underline underline-offset-4 decoration-[#8f3d1b]">SLIP GAJI KARYAWAN</h2>
                       </div>
 
-                      <div className="flex justify-between mb-6 font-bold">
+                      {/* Periode & Nomor */}
+                      <div className="flex justify-between mb-6 text-xs sm:text-sm font-bold border-b border-gray-200 pb-2">
                         <div className="flex gap-2">
-                          <span className="w-16 sm:w-20">Periode</span>
+                          <span className="w-20 sm:w-24 text-gray-700">Periode</span>
                           <span>: {namaBulan[cetakData.periodeBulan - 1] || namaBulan[bulan - 1]} {cetakData.periodeTahun || tahun}</span>
                         </div>
                         <div className="flex gap-2">
-                          <span className="w-24 sm:w-28 text-right">No. Slip Gaji</span>
+                          <span className="w-24 sm:w-32 text-right text-gray-700">No. Slip Gaji</span>
                           <span>: REP/SG/{strBulanRomawi}/{strTahun}/{urutanKaryawan}</span>
                         </div>
                       </div>
 
-                      <div className="mb-6">
-                        <div className="bg-[#8f3d1b] text-white font-bold px-3 py-1 inline-block mb-3 w-64 sm:w-72">
+                      {/* Data Karyawan */}
+                      <div className="mb-6 text-xs sm:text-sm">
+                        <div className="bg-[#8f3d1b] text-white font-extrabold px-4 py-1.5 inline-block mb-3 rounded-r-md shadow-sm w-64 sm:w-72 tracking-wide">
                           DATA KARYAWAN
                         </div>
-                        <table className="w-full font-bold">
+                        <table className="w-full font-bold text-xs sm:text-sm">
                           <tbody>
                             <tr>
-                              <td className="w-24 sm:w-32 py-1">Nama</td>
+                              <td className="w-28 sm:w-36 py-1 text-gray-700">Nama Karyawan</td>
                               <td className="w-4">:</td>
-                              <td>{cetakData.namaKaryawan || "-"}</td>
+                              <td className="text-black font-extrabold text-sm sm:text-base">{cetakData.namaKaryawan || "-"}</td>
                             </tr>
                             <tr>
-                              <td className="py-1">Jabatan</td>
+                              <td className="py-1 text-gray-700">Jabatan</td>
                               <td>:</td>
-                              <td>{cetakData.jabatan || "KARYAWAN"}</td>
+                              <td className="text-black">{cetakData.jabatan || "KARYAWAN"}</td>
                             </tr>
                             <tr>
-                              <td className="py-1">Ket. absen</td>
+                              <td className="py-1 text-gray-700">Keterangan Absen</td>
                               <td>:</td>
-                              <td>{cetakData.hariHadir} Hari</td>
+                              <td className="text-black">{cetakData.hariHadir} Hari Hadir</td>
                             </tr>
                           </tbody>
                         </table>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
+                      {/* Tabel Rincian Penghasilan & Potongan */}
+                      <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 mb-6 text-xs sm:text-sm">
                         <div className="flex-1">
-                          <table className="w-full border-collapse border border-[#8f3d1b]">
+                          <table className="w-full border-collapse border-2 border-[#8f3d1b]">
                             <thead>
                               <tr className="bg-[#8f3d1b] text-white">
-                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">RINCIAN PENGHASILAN</th>
-                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-24 sm:w-28 font-bold">JUMLAH</th>
+                                <th className="border border-[#8f3d1b] px-3 py-2 text-left font-extrabold">RINCIAN PENGHASILAN</th>
+                                <th className="border border-[#8f3d1b] px-3 py-2 text-center w-28 sm:w-32 font-extrabold">JUMLAH</th>
                               </tr>
                             </thead>
                             <tbody>
                               {Array.from({ length: maxRows }).map((_, i) => {
                                 const item = incomeList[i];
                                 return (
-                                  <tr key={i}>
-                                    <td className="border border-[#8f3d1b] px-2 py-1.5">
+                                  <tr key={i} className="hover:bg-amber-50/30">
+                                    <td className="border border-[#8f3d1b] px-3 py-2 font-medium">
                                       {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
                                     </td>
-                                    <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                                    <td className="border border-[#8f3d1b] px-3 py-2 text-right font-semibold">
                                       {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
                                     </td>
                                   </tr>
                                 );
                               })}
-                              <tr className="font-bold bg-orange-50/50">
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL PENGHASILAN</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPenghasilan)}</td>
+                              <tr className="font-extrabold bg-amber-100/60 text-black">
+                                <td className="border border-[#8f3d1b] px-3 py-2.5">TOTAL PENGHASILAN</td>
+                                <td className="border border-[#8f3d1b] px-3 py-2.5 text-right text-[#8f3d1b] text-sm sm:text-base">Rp{formatAngkaSaja(totalPenghasilan)}</td>
                               </tr>
                             </tbody>
                           </table>
                         </div>
 
                         <div className="flex-1">
-                          <table className="w-full border-collapse border border-[#8f3d1b]">
+                          <table className="w-full border-collapse border-2 border-[#8f3d1b]">
                             <thead>
                               <tr className="bg-[#8f3d1b] text-white">
-                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">POTONGAN</th>
-                                <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-24 sm:w-28 font-bold">JUMLAH</th>
+                                <th className="border border-[#8f3d1b] px-3 py-2 text-left font-extrabold">POTONGAN</th>
+                                <th className="border border-[#8f3d1b] px-3 py-2 text-center w-28 sm:w-32 font-extrabold">JUMLAH</th>
                               </tr>
                             </thead>
                             <tbody>
                               {Array.from({ length: maxRows }).map((_, i) => {
                                 const item = deductionList[i];
                                 return (
-                                  <tr key={i}>
-                                    <td className="border border-[#8f3d1b] px-2 py-1.5">
+                                  <tr key={i} className="hover:bg-amber-50/30">
+                                    <td className="border border-[#8f3d1b] px-3 py-2 font-medium">
                                       {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
                                     </td>
-                                    <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                                    <td className="border border-[#8f3d1b] px-3 py-2 text-right font-semibold">
                                       {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
                                     </td>
                                   </tr>
                                 );
                               })}
-                              <tr className="font-bold bg-orange-50/50">
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotongan)}</td>
+                              <tr className="font-extrabold bg-amber-100/60 text-black">
+                                <td className="border border-[#8f3d1b] px-3 py-2.5">TOTAL POTONGAN</td>
+                                <td className="border border-[#8f3d1b] px-3 py-2.5 text-right text-red-700 text-sm sm:text-base">Rp{formatAngkaSaja(totalPotongan)}</td>
                               </tr>
                             </tbody>
                           </table>
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 text-[15px] font-bold gap-2">
-                        <div className="text-[#8f3d1b] uppercase">TOTAL DITERIMA</div>
-                        <div className="border border-[#8f3d1b] px-4 py-1.5 w-full sm:w-64 text-right text-[#8f3d1b]">
+                      {/* Total Diterima */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 text-sm sm:text-base font-extrabold gap-2">
+                        <div className="text-[#8f3d1b] uppercase tracking-wider">TOTAL DITERIMA (THP)</div>
+                        <div className="border-2 border-[#8f3d1b] bg-amber-50/50 px-5 py-2.5 w-full sm:w-72 text-right text-[#8f3d1b] text-base sm:text-lg font-black rounded-sm shadow-sm">
                           Rp{formatAngkaSaja(netGajiCetak)}
                         </div>
                       </div>
 
-                      <div className="mb-4 flex flex-col sm:flex-row font-bold gap-2 sm:gap-0">
-                        <span className="sm:mr-2">Terbilang:</span>
-                        <span className="flex-1">( {terbilang(netGajiCetak)} Rupiah )</span>
+                      {/* Terbilang */}
+                      <div className="mb-6 text-xs sm:text-sm flex flex-col sm:flex-row font-bold bg-gray-50 border border-gray-200 p-3 rounded-lg gap-1 sm:gap-0">
+                        <span className="sm:mr-2 text-gray-700 shrink-0">Terbilang:</span>
+                        <span className="flex-1 italic text-gray-900 font-extrabold capitalize">( {terbilang(netGajiCetak)} Rupiah )</span>
                       </div>
 
-                      <div className="flex justify-end mb-2">
-                        <div className="text-center w-full sm:w-64">
-                          <p>Sorong, {strCalculationDate}</p>
-                          <div className="h-16"></div>
+                      {/* Tanda Tangan & Catatan */}
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs sm:text-sm mb-4 gap-6">
+                        <div className="font-bold text-gray-700">
+                          <span>Catatan :</span>
+                          <p className="font-normal whitespace-pre-wrap text-gray-600 mt-1 max-w-xs">{cetakData.catatan || "-"}</p>
                         </div>
-                      </div>
-
-                      <div className="font-bold mt-2 flex flex-col sm:flex-row gap-2">
-                        <span>Catatan :</span>
-                        <span className="font-normal whitespace-pre-wrap">{cetakData.catatan || "-"}</span>
+                        <div className="text-center w-full sm:w-64">
+                          <p className="font-bold">Sorong, {strCalculationDate}</p>
+                          <p className="text-xs text-gray-500 font-medium mb-12">Manager / Pimpinan</p>
+                          <div className="border-b border-gray-800 w-48 mx-auto"></div>
+                          <p className="text-xs font-bold mt-1 text-gray-700">( Management REP )</p>
+                        </div>
                       </div>
                     </div>
                   );
@@ -1580,18 +1589,19 @@ export default function RekapanGajiPage() {
           const strTahun = (cetakData.periodeTahun || tahun).toString();
           
           return (
-            <div key={idx} className="slip-container w-full pt-2 pb-4 px-4">
-              <div className="flex items-center justify-between mb-4 border-b-2 border-[#8f3d1b] pb-3">
+            <div key={idx} className="slip-container w-full pt-4 pb-6 px-6 box-border font-sans text-black">
+              {/* Header Kop Surat */}
+              <div className="flex items-center justify-between mb-5 border-b-4 border-[#8f3d1b] pb-4">
                 <div className="flex-1">
-                  <h1 className="text-[22px] font-bold mb-1">RUMAH ETNIK PAPUA</h1>
-                  <p className="text-sm mb-0.5">Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
-                  <p className="text-sm">No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
+                  <h1 className="text-2xl font-black mb-1 text-[#8f3d1b] tracking-wider">RUMAH ETNIK PAPUA</h1>
+                  <p className="text-sm font-semibold mb-0.5 text-gray-800">Aimas - Klamono KM 21, Kabupaten Sorong, Papua Barat Daya</p>
+                  <p className="text-sm font-semibold text-gray-800">No. HP: 0821 9986 7918 | Email: officialrumahetnikpapua@gmail.com</p>
                 </div>
                 <div className="w-36 flex justify-end">
                   <img
                     src="/logo.jpg"
                     alt="logo"
-                    className="w-28"
+                    className="w-32 object-contain"
                     onError={(e) => {
                       e.target.style.display = "none";
                     }}
@@ -1599,53 +1609,57 @@ export default function RekapanGajiPage() {
                 </div>
               </div>
 
+              {/* Title */}
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#8f3d1b]">SLIP GAJI KARYAWAN</h2>
+                <h2 className="text-2xl font-extrabold text-[#8f3d1b] tracking-wide underline underline-offset-4 decoration-[#8f3d1b]">SLIP GAJI KARYAWAN</h2>
               </div>
 
-              <div className="flex justify-between mb-6 text-sm font-bold">
+              {/* Info Periode & No. Slip */}
+              <div className="flex justify-between mb-6 text-sm font-bold border-b border-gray-200 pb-2">
                 <div className="flex gap-2">
-                  <span className="w-20">Periode</span>
+                  <span className="w-24 text-gray-700">Periode</span>
                   <span>: {namaBulan[cetakData.periodeBulan - 1] || namaBulan[bulan - 1]} {cetakData.periodeTahun || tahun}</span>
                 </div>
                 <div className="flex gap-2">
-                  <span className="w-28 text-right">No. Slip Gaji</span>
+                  <span className="w-32 text-right text-gray-700">No. Slip Gaji</span>
                   <span>: REP/SG/{strBulanRomawi}/{strTahun}/{urutanKaryawan}</span>
                 </div>
               </div>
 
+              {/* Data Karyawan */}
               <div className="mb-6 text-sm">
-                <div className="bg-[#8f3d1b] text-white font-bold px-3 py-1 inline-block mb-3 w-72">
+                <div className="bg-[#8f3d1b] text-white font-extrabold px-4 py-1.5 inline-block mb-3 rounded-r-md shadow-sm w-72 text-sm tracking-wide">
                   DATA KARYAWAN
                 </div>
-                <table className="w-full font-bold">
+                <table className="w-full font-bold text-sm">
                   <tbody>
                     <tr>
-                      <td className="w-32 py-1">Nama</td>
+                      <td className="w-36 py-1 text-gray-700">Nama Karyawan</td>
                       <td className="w-4">:</td>
-                      <td>{cetakData.namaKaryawan || "-"}</td>
+                      <td className="text-black font-extrabold text-base">{cetakData.namaKaryawan || "-"}</td>
                     </tr>
                     <tr>
-                      <td className="py-1">Jabatan</td>
+                      <td className="py-1 text-gray-700">Jabatan</td>
                       <td>:</td>
-                      <td>{cetakData.jabatan || "KARYAWAN"}</td>
+                      <td className="text-black">{cetakData.jabatan || "KARYAWAN"}</td>
                     </tr>
                     <tr>
-                      <td className="py-1">Keterangan absen</td>
+                      <td className="py-1 text-gray-700">Keterangan Absen</td>
                       <td>:</td>
-                      <td>{cetakData.hariHadir} Hari</td>
+                      <td className="text-black">{cetakData.hariHadir} Hari Hadir</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
+              {/* Tabel Rincian Penghasilan & Potongan */}
               <div className="flex gap-6 mb-6 text-sm">
                 <div className="flex-1">
-                  <table className="w-full border-collapse border border-[#8f3d1b]">
+                  <table className="w-full border-collapse border-2 border-[#8f3d1b] text-sm">
                     <thead>
                       <tr className="bg-[#8f3d1b] text-white">
-                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">RINCIAN PENGHASILAN</th>
-                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-28 font-bold">JUMLAH</th>
+                        <th className="border border-[#8f3d1b] px-3 py-2 text-left font-extrabold">RINCIAN PENGHASILAN</th>
+                        <th className="border border-[#8f3d1b] px-3 py-2 text-center w-32 font-extrabold">JUMLAH</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1653,29 +1667,29 @@ export default function RekapanGajiPage() {
                         const item = incomeList[i];
                         return (
                           <tr key={i}>
-                            <td className="border border-[#8f3d1b] px-2 py-1.5">
+                            <td className="border border-[#8f3d1b] px-3 py-2 font-medium">
                               {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
                             </td>
-                            <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                            <td className="border border-[#8f3d1b] px-3 py-2 text-right font-semibold">
                               {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
                             </td>
                           </tr>
                         );
                       })}
-                      <tr className="font-bold bg-orange-50/50">
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL PENGHASILAN</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPenghasilan)}</td>
+                      <tr className="font-extrabold bg-amber-100/60 text-black">
+                        <td className="border border-[#8f3d1b] px-3 py-2.5">TOTAL PENGHASILAN</td>
+                        <td className="border border-[#8f3d1b] px-3 py-2.5 text-right text-[#8f3d1b] text-base">Rp{formatAngkaSaja(totalPenghasilan)}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
                 <div className="flex-1">
-                  <table className="w-full border-collapse border border-[#8f3d1b]">
+                  <table className="w-full border-collapse border-2 border-[#8f3d1b] text-sm">
                     <thead>
                       <tr className="bg-[#8f3d1b] text-white">
-                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-left font-bold">POTONGAN</th>
-                        <th className="border border-[#8f3d1b] px-2 py-1.5 text-center w-28 font-bold">JUMLAH</th>
+                        <th className="border border-[#8f3d1b] px-3 py-2 text-left font-extrabold">POTONGAN</th>
+                        <th className="border border-[#8f3d1b] px-3 py-2 text-center w-32 font-extrabold">JUMLAH</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1683,46 +1697,50 @@ export default function RekapanGajiPage() {
                         const item = deductionList[i];
                         return (
                           <tr key={i}>
-                            <td className="border border-[#8f3d1b] px-2 py-1.5">
+                            <td className="border border-[#8f3d1b] px-3 py-2 font-medium">
                               {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
                             </td>
-                            <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                            <td className="border border-[#8f3d1b] px-3 py-2 text-right font-semibold">
                               {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
                             </td>
                           </tr>
                         );
                       })}
-                      <tr className="font-bold bg-orange-50/50">
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotongan)}</td>
+                      <tr className="font-extrabold bg-amber-100/60 text-black">
+                        <td className="border border-[#8f3d1b] px-3 py-2.5">TOTAL POTONGAN</td>
+                        <td className="border border-[#8f3d1b] px-3 py-2.5 text-right text-red-700 text-base">Rp{formatAngkaSaja(totalPotongan)}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <div className="flex mb-4 text-[15px] font-bold items-center">
-                <div className="text-[#8f3d1b] uppercase w-1/2">TOTAL DITERIMA</div>
-                <div className="border border-[#8f3d1b] px-4 py-1.5 w-64 text-right text-[#8f3d1b]">
+              {/* Total Diterima */}
+              <div className="flex justify-between items-center mb-5 text-base font-extrabold">
+                <div className="text-[#8f3d1b] uppercase tracking-wider text-base">TOTAL DITERIMA (THP)</div>
+                <div className="border-2 border-[#8f3d1b] bg-amber-50/50 px-5 py-2.5 w-72 text-right text-[#8f3d1b] text-lg font-black rounded-sm shadow-sm">
                   Rp{formatAngkaSaja(netGajiCetak)}
                 </div>
               </div>
 
-              <div className="mb-4 text-sm flex font-bold">
-                <span className="mr-2">Terbilang:</span>
-                <span className="flex-1">( {terbilang(netGajiCetak)} Rupiah )</span>
+              {/* Terbilang */}
+              <div className="mb-6 text-sm flex font-bold bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                <span className="mr-2 text-gray-700 shrink-0">Terbilang:</span>
+                <span className="flex-1 italic text-gray-900 font-extrabold capitalize">( {terbilang(netGajiCetak)} Rupiah )</span>
               </div>
 
-              <div className="flex justify-end text-sm mb-2">
-                <div className="text-center w-64">
-                  <p>Sorong, {strCalculationDate}</p>
-                  <div className="h-16"></div>
+              {/* Tanda Tangan & Catatan */}
+              <div className="flex justify-between items-end text-sm mb-4 pt-2">
+                <div className="text-sm font-bold text-gray-700">
+                  <span>Catatan :</span>
+                  <p className="font-normal whitespace-pre-wrap text-gray-600 mt-1 max-w-xs">{cetakData.catatan || "-"}</p>
                 </div>
-              </div>
-
-              <div className="text-sm font-bold mt-2 flex gap-2">
-                <span>Catatan :</span>
-                <span className="font-normal whitespace-pre-wrap">{cetakData.catatan || "-"}</span>
+                <div className="text-center w-64">
+                  <p className="font-bold">Sorong, {strCalculationDate}</p>
+                  <p className="text-xs text-gray-500 font-medium mb-12">Manager / Pimpinan</p>
+                  <div className="border-b border-gray-800 w-48 mx-auto"></div>
+                  <p className="text-xs font-bold mt-1 text-gray-700">( Management REP )</p>
+                </div>
               </div>
             </div>
           );
@@ -2081,8 +2099,8 @@ export default function RekapanGajiPage() {
       <style jsx global>{`
         @media print {
           @page {
-            size: portrait;
-            margin: ${isCetakTabel ? '0.4cm 0.3cm' : '1cm'};
+            size: A4 portrait;
+            margin: ${isCetakTabel ? '0.4cm 0.3cm' : '0.8cm 0.6cm'};
           }
           body {
             background-color: white !important;
@@ -2114,7 +2132,8 @@ export default function RekapanGajiPage() {
             page-break-after: always;
             width: 100% !important;
             max-width: 100% !important;
-            padding: 10px 0;
+            padding: 12px 16px !important;
+            box-sizing: border-box !important;
           }
           .slip-container:last-child {
             page-break-after: auto;
