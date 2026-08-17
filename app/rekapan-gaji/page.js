@@ -3,8 +3,12 @@ import { useState, useEffect, useCallback } from "react";
 import {
   collection,
   getDocs,
+  getDoc,
   doc,
   setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   query,
   where,
 } from "firebase/firestore";
@@ -23,7 +27,11 @@ import {
   TrendingDown,
   Clock,
   Wallet,
-  Eye
+  Eye,
+  PlusCircle,
+  Trash2,
+  Pencil,
+  Sliders
 } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
@@ -44,6 +52,30 @@ export default function RekapanGajiPage() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewData, setPreviewData] = useState(null);
   const [isCetakTabel, setIsCetakTabel] = useState(false);
+
+  // Dynamic Custom Salary Items & Standard Component Labels
+  const [customKomponen, setCustomKomponen] = useState([]);
+  const [isManageItemModalOpen, setIsManageItemModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("custom"); // "custom" | "standard"
+  const [newNamaItem, setNewNamaItem] = useState("");
+  const [newTipeItem, setNewTipeItem] = useState("pemasukan"); // "pemasukan" | "potongan"
+  const [editingItem, setEditingItem] = useState(null); // { id, nama, tipe }
+  const [isAddingItem, setIsAddingItem] = useState(false);
+
+  const defaultStandardLabels = {
+    lembur: "Lembur",
+    thr: "Bonus THR",
+    homestay: "Bonus Homestay",
+    tidakHadir: "Tidak Hadir",
+    kasbonLama: "Kasbon",
+    dendaKostum: "Terlambat / Kostum",
+    kasbonMakanan: "Kasbon Makanan",
+    potonganBulanan: "Potongan Bulanan",
+    panjar: "Panjar",
+  };
+  const [standardLabels, setStandardLabels] = useState(defaultStandardLabels);
+  const [editingStandardKey, setEditingStandardKey] = useState(null);
+  const [editingStandardValue, setEditingStandardValue] = useState("");
 
   const namaBulan = [
     "JANUARI",
@@ -115,6 +147,20 @@ export default function RekapanGajiPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      // Ambil daftar komponen gaji custom
+      const snapCustom = await getDocs(collection(db, "komponen_gaji_custom"));
+      const listCustom = [];
+      snapCustom.forEach((docSnap) => {
+        listCustom.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setCustomKomponen(listCustom);
+
+      // Ambil kustomisasi label komponen standar (bawaan sistem)
+      const snapLabels = await getDoc(doc(db, "pengaturan_gaji", "standard_labels"));
+      if (snapLabels.exists()) {
+        setStandardLabels((prev) => ({ ...prev, ...snapLabels.data() }));
+      }
+
       const qKaryawan = query(
         collection(db, "karyawan"),
         where("statusAktif", "==", true),
@@ -173,6 +219,7 @@ export default function RekapanGajiPage() {
             namaKaryawan: karyawan.nama,
             hariHadir: tersimpan.hariHadir || 28,
             noHp: karyawan.noHp || tersimpan.noHp || "",
+            customItems: tersimpan.customItems || {},
           };
         }
 
@@ -192,6 +239,7 @@ export default function RekapanGajiPage() {
           potonganBulanan: 0,
           panjar: totalPanjarBulanIni,
           tidakHadir: 0,
+          customItems: {},
           catatan: autoCatatanPanjar,
           isSaved: false,
           noHp: karyawan.noHp || "",
@@ -213,24 +261,105 @@ export default function RekapanGajiPage() {
     }
   }, [bulan, tahun]);
 
+  const handleSaveStandardLabel = async (key, val) => {
+    const newName = val.trim() || defaultStandardLabels[key];
+    const updated = { ...standardLabels, [key]: newName };
+    setStandardLabels(updated);
+    setEditingStandardKey(null);
+    try {
+      await setDoc(doc(db, "pengaturan_gaji", "standard_labels"), updated, { merge: true });
+      setStatus({
+        type: "success",
+        message: `Label komponen bawaan "${newName}" berhasil diperbarui!`,
+      });
+    } catch (err) {
+      console.error("Error saving standard label:", err);
+      setStatus({ type: "error", message: "Gagal menyimpan label komponen." });
+    }
+    setTimeout(() => setStatus({ type: "", message: "" }), 3000);
+  };
+
+  const getSlipLists = (cetakData) => {
+    const customPemasukanItems = customKomponen.filter((k) => k.tipe === "pemasukan");
+    const customPotonganItems = customKomponen.filter((k) => k.tipe === "potongan");
+
+    const incomeList = [
+      { label: "1. Gaji Pokok", value: Number(cetakData.gajiPokok) || 0 },
+      { label: `2. ${standardLabels.lembur || "Lembur"}`, value: Number(cetakData.lembur) || 0 },
+      { label: `3. ${standardLabels.thr || "Bonus THR"} / ${standardLabels.homestay || "Homestay"}`, value: (Number(cetakData.thr) || 0) + (Number(cetakData.homestay) || 0) },
+      ...customPemasukanItems.map((k, idx) => ({
+        label: `${idx + 4}. ${k.nama}`,
+        value: Number(cetakData.customItems?.[k.id]) || 0,
+      })),
+    ];
+
+    const deductionList = [
+      { label: `1. ${standardLabels.kasbonLama || "Kasbon"}`, value: Number(cetakData.kasbonLama) || 0 },
+      { label: `2. ${standardLabels.dendaKostum || "Terlambat / Kostum"}`, value: Number(cetakData.dendaKostum) || 0 },
+      { label: `3. ${standardLabels.kasbonMakanan || "Kasbon Makanan"}`, value: Number(cetakData.kasbonMakanan) || 0 },
+      { label: `4. ${standardLabels.potonganBulanan || "Potongan Bulanan"}`, value: Number(cetakData.potonganBulanan) || 0 },
+      { label: `5. ${standardLabels.panjar || "Panjar"}`, value: Number(cetakData.panjar) || 0 },
+      { label: `6. ${standardLabels.tidakHadir || "Tidak Hadir"}`, value: Number(cetakData.tidakHadir) || 0 },
+      ...customPotonganItems.map((k, idx) => ({
+        label: `${idx + 7}. ${k.nama}`,
+        value: Number(cetakData.customItems?.[k.id]) || 0,
+      })),
+    ];
+
+    const totalPenghasilan = incomeList.reduce((s, p) => s + p.value, 0);
+    const totalPotongan = deductionList.reduce((s, p) => s + p.value, 0);
+    const netGajiCetak = totalPenghasilan - totalPotongan;
+
+    const maxRows = Math.max(incomeList.length, deductionList.length, 6);
+
+    return { incomeList, deductionList, totalPenghasilan, totalPotongan, netGajiCetak, maxRows };
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const hitungPemasukan = (data) =>
-    (Number(data.gajiPokok) || 0) +
-    (Number(data.lembur) || 0) +
-    (Number(data.thr) || 0) +
-    (Number(data.homestay) || 0);
-  const hitungPotongan = (data) =>
-    (Number(data.dendaKostum) || 0) +
-    (Number(data.izin) || 0) +
-    (Number(data.kasbonLama) || 0) +
-    (Number(data.kasbonMakanan) || 0) +
-    (Number(data.potonganBulanan) || 0) +
-    (Number(data.panjar) || 0) +
-    (Number(data.tidakHadir) || 0);
-  const hitungNetGaji = (data) => hitungPemasukan(data) - hitungPotongan(data);
+  const hitungPemasukan = useCallback(
+    (data) => {
+      const stdPemasukan =
+        (Number(data.gajiPokok) || 0) +
+        (Number(data.lembur) || 0) +
+        (Number(data.thr) || 0) +
+        (Number(data.homestay) || 0);
+
+      const customPemasukan = customKomponen
+        .filter((k) => k.tipe === "pemasukan")
+        .reduce((acc, k) => acc + (Number(data.customItems?.[k.id]) || 0), 0);
+
+      return stdPemasukan + customPemasukan;
+    },
+    [customKomponen]
+  );
+
+  const hitungPotongan = useCallback(
+    (data) => {
+      const stdPotongan =
+        (Number(data.dendaKostum) || 0) +
+        (Number(data.izin) || 0) +
+        (Number(data.kasbonLama) || 0) +
+        (Number(data.kasbonMakanan) || 0) +
+        (Number(data.potonganBulanan) || 0) +
+        (Number(data.panjar) || 0) +
+        (Number(data.tidakHadir) || 0);
+
+      const customPotongan = customKomponen
+        .filter((k) => k.tipe === "potongan")
+        .reduce((acc, k) => acc + (Number(data.customItems?.[k.id]) || 0), 0);
+
+      return stdPotongan + customPotongan;
+    },
+    [customKomponen]
+  );
+
+  const hitungNetGaji = useCallback(
+    (data) => hitungPemasukan(data) - hitungPotongan(data),
+    [hitungPemasukan, hitungPotongan]
+  );
 
   const openModalKalkulator = (karyawan) => {
     setActiveKaryawan({
@@ -244,9 +373,94 @@ export default function RekapanGajiPage() {
       lembur: karyawan.lembur || 0,
       thr: karyawan.thr || 0,
       homestay: karyawan.homestay || 0,
+      customItems: karyawan.customItems ? { ...karyawan.customItems } : {},
       catatan: karyawan.catatan || "",
     });
     setIsModalOpen(true);
+  };
+
+  const handleCustomItemChange = (itemId, value) => {
+    setActiveKaryawan((prev) => ({
+      ...prev,
+      customItems: {
+        ...(prev.customItems || {}),
+        [itemId]: Number(value) || 0,
+      },
+    }));
+  };
+
+  const handleTambahCustomItem = async (e) => {
+    e.preventDefault();
+    if (!newNamaItem.trim()) return;
+
+    setIsAddingItem(true);
+    try {
+      await addDoc(collection(db, "komponen_gaji_custom"), {
+        nama: newNamaItem.trim(),
+        tipe: newTipeItem,
+        createdAt: new Date().toISOString(),
+      });
+      setNewNamaItem("");
+      setStatus({
+        type: "success",
+        message: `Komponen gaji "${newNamaItem.trim()}" berhasil ditambahkan!`,
+      });
+      fetchData();
+    } catch (error) {
+      console.error("Error adding custom item:", error);
+      setStatus({ type: "error", message: "Gagal menambahkan komponen gaji." });
+    } finally {
+      setIsAddingItem(false);
+      setTimeout(() => setStatus({ type: "", message: "" }), 3000);
+    }
+  };
+
+  const handleStartEdit = (item) => {
+    setEditingItem({ id: item.id, nama: item.nama, tipe: item.tipe });
+  };
+
+  const handleUpdateCustomItem = async (e) => {
+    e.preventDefault();
+    if (!editingItem || !editingItem.nama.trim()) return;
+
+    setIsAddingItem(true);
+    try {
+      await updateDoc(doc(db, "komponen_gaji_custom", editingItem.id), {
+        nama: editingItem.nama.trim(),
+        tipe: editingItem.tipe,
+        updatedAt: new Date().toISOString(),
+      });
+      setStatus({
+        type: "success",
+        message: `Komponen gaji "${editingItem.nama.trim()}" berhasil diperbarui!`,
+      });
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating custom item:", error);
+      setStatus({ type: "error", message: "Gagal memperbarui komponen gaji." });
+    } finally {
+      setIsAddingItem(false);
+      setTimeout(() => setStatus({ type: "", message: "" }), 3000);
+    }
+  };
+
+  const handleHapusCustomItem = async (id, nama) => {
+    if (!confirm(`Yakin ingin menghapus komponen gaji "${nama}"?`)) return;
+
+    try {
+      if (editingItem?.id === id) setEditingItem(null);
+      await deleteDoc(doc(db, "komponen_gaji_custom", id));
+      setStatus({
+        type: "success",
+        message: `Komponen gaji "${nama}" berhasil dihapus.`,
+      });
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting custom item:", error);
+      setStatus({ type: "error", message: "Gagal menghapus komponen gaji." });
+    }
+    setTimeout(() => setStatus({ type: "", message: "" }), 3000);
   };
 
   const handleInputChange = (e) => {
@@ -423,6 +637,12 @@ export default function RekapanGajiPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setIsManageItemModalOpen(true)}
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
+            >
+              <PlusCircle className="w-4 h-4" /> Kelola Item Gaji
+            </button>
+            <button
               onClick={() => {
                 setIsCetakTabel(true);
                 setDataCetakList([]);
@@ -496,18 +716,40 @@ export default function RekapanGajiPage() {
                   <th className="px-4 py-4 rounded-tl-xl">NAMA KARYAWAN</th>
                   <th className="px-4 py-4 text-center">ABSEN</th>
                   <th className="px-4 py-4 text-right">GAJI POKOK</th>
-                  <th className="px-4 py-4 text-right text-red-300">
-                    TIDAK HADIR
+                  <th className="px-4 py-4 text-right text-red-300 uppercase">
+                    {standardLabels.tidakHadir || "TIDAK HADIR"}
                   </th>
-                  <th className="px-4 py-4 text-right text-red-300">KASBON</th>
-                  <th className="px-4 py-4 text-right text-red-300">
-                    TERLAMBAT
+                  <th className="px-4 py-4 text-right text-red-300 uppercase">
+                    {standardLabels.kasbonLama || "KASBON"}
                   </th>
-                  <th className="px-4 py-4 text-right text-red-300">KASBON MAKANAN</th>
-                  <th className="px-4 py-4 text-right text-red-300">POTONGAN BULANAN</th>
-                  <th className="px-4 py-4 text-right">PANJAR</th>
-                  <th className="px-4 py-4 text-right">LEMBUR</th>
-                  <th className="px-4 py-4 text-right">BONUS</th>
+                  <th className="px-4 py-4 text-right text-red-300 uppercase">
+                    {standardLabels.dendaKostum || "TERLAMBAT"}
+                  </th>
+                  <th className="px-4 py-4 text-right text-red-300 uppercase">
+                    {standardLabels.kasbonMakanan || "KASBON MAKANAN"}
+                  </th>
+                  <th className="px-4 py-4 text-right text-red-300 uppercase">
+                    {standardLabels.potonganBulanan || "POTONGAN BULANAN"}
+                  </th>
+                  <th className="px-4 py-4 text-right text-amber-300 uppercase">
+                    {standardLabels.panjar || "PANJAR"}
+                  </th>
+                  {customKomponen.filter((k) => k.tipe === "potongan").map((item) => (
+                    <th key={item.id} className="px-4 py-4 text-right text-red-300 uppercase">
+                      {item.nama}
+                    </th>
+                  ))}
+                  <th className="px-4 py-4 text-right uppercase">
+                    {standardLabels.lembur || "LEMBUR"}
+                  </th>
+                  <th className="px-4 py-4 text-right uppercase">
+                    {standardLabels.thr || "BONUS"}
+                  </th>
+                  {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => (
+                    <th key={item.id} className="px-4 py-4 text-right text-blue-300 uppercase">
+                      {item.nama}
+                    </th>
+                  ))}
                   <th className="px-4 py-4 text-right text-red-300">
                     TOTAL POTONGAN
                   </th>
@@ -520,14 +762,14 @@ export default function RekapanGajiPage() {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={14} className="px-6 py-12 text-center">
+                    <td colSpan={14 + customKomponen.length} className="px-6 py-12 text-center">
                       <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
                     </td>
                   </tr>
                 ) : dataRekapan.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={14}
+                      colSpan={14 + customKomponen.length}
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       Tidak ada data karyawan aktif.
@@ -538,7 +780,6 @@ export default function RekapanGajiPage() {
                     const lemburVal = Number(data.lembur) || 0;
                     const bonusVal =
                       (Number(data.thr) || 0) + (Number(data.homestay) || 0);
-                    const totalBonus = lemburVal + bonusVal;
                     const totalPotonganKhusus = hitungPotongan(data);
                     const netGaji = hitungNetGaji(data);
                     return (
@@ -578,12 +819,22 @@ export default function RekapanGajiPage() {
                         <td className="px-4 py-4 text-right text-amber-600 font-medium">
                           {formatRupiah(Number(data.panjar) || 0)}
                         </td>
+                        {customKomponen.filter((k) => k.tipe === "potongan").map((item) => (
+                          <td key={item.id} className="px-4 py-4 text-right text-papua-red font-medium">
+                            {formatRupiah(Number(data.customItems?.[item.id]) || 0)}
+                          </td>
+                        ))}
                         <td className="px-4 py-4 text-right text-papua-primary">
                           {formatRupiah(lemburVal)}
                         </td>
                         <td className="px-4 py-4 text-right text-papua-primary">
                           {formatRupiah(bonusVal)}
                         </td>
+                        {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => (
+                          <td key={item.id} className="px-4 py-4 text-right text-blue-600 font-medium">
+                            {formatRupiah(Number(data.customItems?.[item.id]) || 0)}
+                          </td>
+                        ))}
                         <td className="px-4 py-4 text-right text-papua-red">
                           {formatRupiah(totalPotonganKhusus)}
                         </td>
@@ -653,12 +904,28 @@ export default function RekapanGajiPage() {
                     <td className="px-4 py-4 text-right text-amber-300">
                       {formatRupiah(totalPanjar)}
                     </td>
+                    {customKomponen.filter((k) => k.tipe === "potongan").map((item) => {
+                      const tot = dataRekapan.reduce((acc, curr) => acc + (Number(curr.customItems?.[item.id]) || 0), 0);
+                      return (
+                        <td key={item.id} className="px-4 py-4 text-right text-red-300">
+                          {formatRupiah(tot)}
+                        </td>
+                      );
+                    })}
                     <td className="px-4 py-4 text-right text-blue-300">
                       {formatRupiah(totalLembur)}
                     </td>
                     <td className="px-4 py-4 text-right text-blue-300">
                       {formatRupiah(totalBonusVal)}
                     </td>
+                    {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => {
+                      const tot = dataRekapan.reduce((acc, curr) => acc + (Number(curr.customItems?.[item.id]) || 0), 0);
+                      return (
+                        <td key={item.id} className="px-4 py-4 text-right text-blue-300">
+                          {formatRupiah(tot)}
+                        </td>
+                      );
+                    })}
                     <td className="px-4 py-4 text-right text-red-300">
                       {formatRupiah(totalPotonganKeseluruhan)}
                     </td>
@@ -706,12 +973,18 @@ export default function RekapanGajiPage() {
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Gaji Pokok</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Lembur</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Bonus</th>
+                {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => (
+                  <th key={item.id} style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{item.nama}</th>
+                ))}
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Tdk Hadir</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Kasbon</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Terlambat</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Ksb Mkn</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Pot. Bln</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>Panjar</th>
+                {customKomponen.filter((k) => k.tipe === "potongan").map((item) => (
+                  <th key={item.id} style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{item.nama}</th>
+                ))}
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>Tot. Pot.</th>
                 <th style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ccffcc' }}>Net Gaji</th>
               </tr>
@@ -730,12 +1003,18 @@ export default function RekapanGajiPage() {
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(data.gajiPokok)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(lemburVal)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(bonusVal)}</td>
+                    {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => (
+                      <td key={item.id} style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right' }}>{formatAngkaSaja(Number(data.customItems?.[item.id]) || 0)}</td>
+                    ))}
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.tidakHadir) || 0)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.kasbonLama) || 0)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.dendaKostum) || 0)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.kasbonMakanan) || 0)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.potonganBulanan) || 0)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.panjar) || 0)}</td>
+                    {customKomponen.filter((k) => k.tipe === "potongan").map((item) => (
+                      <td key={item.id} style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', color: '#c62828' }}>{formatAngkaSaja(Number(data.customItems?.[item.id]) || 0)}</td>
+                    ))}
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', fontWeight: 'bold', color: '#c62828' }}>{formatAngkaSaja(totalPotonganKhusus)}</td>
                     <td style={{ border: '1px solid #ccc', padding: '3px', textAlign: 'right', fontWeight: 'bold', color: '#2e7d32' }}>{formatAngkaSaja(netGaji)}</td>
                   </tr>
@@ -747,12 +1026,24 @@ export default function RekapanGajiPage() {
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(totalGajiPokok)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(totalLembur)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(totalBonusVal)}</td>
+                {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => {
+                  const tot = dataRekapan.reduce((acc, curr) => acc + (Number(curr.customItems?.[item.id]) || 0), 0);
+                  return (
+                    <td key={item.id} style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right' }}>{formatAngkaSaja(tot)}</td>
+                  );
+                })}
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalTidakHadir)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalKasbon)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalTerlambat)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalKasbonMakanan)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalPotonganBulanan)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalPanjar)}</td>
+                {customKomponen.filter((k) => k.tipe === "potongan").map((item) => {
+                  const tot = dataRekapan.reduce((acc, curr) => acc + (Number(curr.customItems?.[item.id]) || 0), 0);
+                  return (
+                    <td key={item.id} style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(tot)}</td>
+                  );
+                })}
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ffcccc' }}>{formatAngkaSaja(totalPotonganKeseluruhan)}</td>
                 <td style={{ border: '1px solid #8f3d1b', padding: '4px 3px', textAlign: 'right', color: '#ccffcc' }}>{formatAngkaSaja(totalNetGajiKeseluruhan)}</td>
               </tr>
@@ -845,7 +1136,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Lembur (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.lembur || "Lembur"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -859,7 +1150,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Bonus THR (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.thr || "Bonus THR"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -873,7 +1164,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Bonus Homestay (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.homestay || "Bonus Homestay"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -885,6 +1176,22 @@ export default function RekapanGajiPage() {
                         />
                       </div>
                     </label>
+
+                    {/* DYNAMIC CUSTOM PEMASUKAN ITEMS */}
+                    {customKomponen.filter((k) => k.tipe === "pemasukan").map((item) => (
+                      <label key={item.id} className="block text-sm">
+                        <div className="text-xs font-bold text-emerald-700 mb-1">{item.nama} (Rp)</div>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-600 font-medium text-sm pointer-events-none">Rp</span>
+                          <input
+                            type="number"
+                            value={activeKaryawan.customItems?.[item.id] || 0}
+                            onChange={(e) => handleCustomItemChange(item.id, e.target.value)}
+                            className="pl-9 w-full border border-emerald-200 rounded-xl px-4 py-2.5 text-sm bg-emerald-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all font-medium"
+                          />
+                        </div>
+                      </label>
+                    ))}
                   </div>
                 </div>
 
@@ -897,7 +1204,7 @@ export default function RekapanGajiPage() {
 
                   <div className="space-y-4">
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Tidak Hadir (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.tidakHadir || "Tidak Hadir"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -911,7 +1218,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Kasbon (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.kasbonLama || "Kasbon"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -925,7 +1232,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Terlambat / Kostum (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.dendaKostum || "Terlambat / Kostum"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -939,7 +1246,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Kasbon Makanan (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.kasbonMakanan || "Kasbon Makanan"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -953,7 +1260,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Potongan Bulanan (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.potonganBulanan || "Potongan Bulanan"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -967,7 +1274,7 @@ export default function RekapanGajiPage() {
                     </label>
 
                     <label className="block text-sm">
-                      <div className="text-xs font-bold text-gray-600 mb-1">Panjar (Rp)</div>
+                      <div className="text-xs font-bold text-gray-600 mb-1">{standardLabels.panjar || "Panjar"} (Rp)</div>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-medium text-sm pointer-events-none">Rp</span>
                         <input
@@ -981,6 +1288,22 @@ export default function RekapanGajiPage() {
                         />
                       </div>
                     </label>
+
+                    {/* DYNAMIC CUSTOM POTONGAN ITEMS */}
+                    {customKomponen.filter((k) => k.tipe === "potongan").map((item) => (
+                      <label key={item.id} className="block text-sm">
+                        <div className="text-xs font-bold text-red-700 mb-1">{item.nama} (Rp)</div>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-red-600 font-medium text-sm pointer-events-none">Rp</span>
+                          <input
+                            type="number"
+                            value={activeKaryawan.customItems?.[item.id] || 0}
+                            onChange={(e) => handleCustomItemChange(item.id, e.target.value)}
+                            className="pl-9 w-full border border-red-200 rounded-xl px-4 py-2.5 text-sm bg-red-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600 transition-all font-medium"
+                          />
+                        </div>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1056,18 +1379,7 @@ export default function RekapanGajiPage() {
               <div className="bg-white p-4 sm:p-8 shadow-sm border border-gray-200 w-full max-w-[210mm] min-h-max sm:min-h-[297mm] text-black text-xs sm:text-sm">
                 {(() => {
                   const cetakData = previewData;
-                  const totalBonus = Number(cetakData.lembur) + Number(cetakData.thr) + Number(cetakData.homestay);
-                  const gajiBruto = Number(cetakData.gajiPokok) + totalBonus;
-                  const potonganList = [
-                    { label: "Kasbon Lama", value: Number(cetakData.kasbonLama) || 0 },
-                    { label: "Terlambat / Kostum", value: Number(cetakData.dendaKostum) || 0 },
-                    { label: "Kasbon Makanan", value: Number(cetakData.kasbonMakanan) || 0 },
-                    { label: "Potongan Bulanan", value: Number(cetakData.potonganBulanan) || 0 },
-                    { label: "Panjar", value: Number(cetakData.panjar) || 0 },
-                    { label: "Tidak Hadir", value: Number(cetakData.tidakHadir) || 0 },
-                  ];
-                  const totalPotong = potonganList.reduce((s, p) => s + p.value, 0);
-                  const netGajiCetak = gajiBruto - totalPotong;
+                  const { incomeList, deductionList, totalPenghasilan, totalPotongan, netGajiCetak, maxRows } = getSlipLists(cetakData);
                   
                   const calculationDate = cetakData.tanggalKalkulasi ? new Date(cetakData.tanggalKalkulasi) : new Date();
                   const strCalculationDate = `${calculationDate.getDate()} ${namaBulan[calculationDate.getMonth()]} ${calculationDate.getFullYear()}`;
@@ -1147,33 +1459,22 @@ export default function RekapanGajiPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">1. Gaji Pokok</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.gajiPokok) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">2. Lembur</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.lembur) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">3. Bonus / Insentif</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.thr || 0) + Number(cetakData.homestay || 0))}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">4.</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                              </tr>
+                              {Array.from({ length: maxRows }).map((_, i) => {
+                                const item = incomeList[i];
+                                return (
+                                  <tr key={i}>
+                                    <td className="border border-[#8f3d1b] px-2 py-1.5">
+                                      {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
+                                    </td>
+                                    <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                                      {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
                               <tr className="font-bold bg-orange-50/50">
                                 <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL PENGHASILAN</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(gajiBruto)}</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPenghasilan)}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -1188,33 +1489,22 @@ export default function RekapanGajiPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Lama</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonLama) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">2. Terlambat / Kostum</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.dendaKostum) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">3. Kasbon Makanan</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonMakanan) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">4. Potongan Bulanan</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.potonganBulanan) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">5. Panjar</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.panjar) || 0)}</td>
-                              </tr>
-                              <tr>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5">6. Tidak Hadir</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.tidakHadir) || 0)}</td>
-                              </tr>
+                              {Array.from({ length: maxRows }).map((_, i) => {
+                                const item = deductionList[i];
+                                return (
+                                  <tr key={i}>
+                                    <td className="border border-[#8f3d1b] px-2 py-1.5">
+                                      {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
+                                    </td>
+                                    <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                                      {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
                               <tr className="font-bold bg-orange-50/50">
                                 <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
-                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotong)}</td>
+                                <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotongan)}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -1256,22 +1546,7 @@ export default function RekapanGajiPage() {
       {/* CETAK AREA (print only) */}
       <div className="hidden print:block font-sans text-black bg-white w-full">
         {dataCetakList.map((cetakData, idx) => {
-          const totalBonus =
-            Number(cetakData.lembur) +
-            Number(cetakData.thr) +
-            Number(cetakData.homestay);
-          const gajiBruto = Number(cetakData.gajiPokok) + totalBonus;
-          
-          const potonganList = [
-            { label: "Kasbon Lama", value: Number(cetakData.kasbonLama) || 0 },
-            { label: "Terlambat / Kostum", value: Number(cetakData.dendaKostum) || 0 },
-            { label: "Kasbon Makanan", value: Number(cetakData.kasbonMakanan) || 0 },
-            { label: "Potongan Bulanan", value: Number(cetakData.potonganBulanan) || 0 },
-            { label: "Panjar", value: Number(cetakData.panjar) || 0 },
-            { label: "Tidak Hadir", value: Number(cetakData.tidakHadir) || 0 },
-          ];
-          const totalPotong = potonganList.reduce((s, p) => s + p.value, 0);
-          const netGajiCetak = gajiBruto - totalPotong;
+          const { incomeList, deductionList, totalPenghasilan, totalPotongan, netGajiCetak, maxRows } = getSlipLists(cetakData);
           
           const calculationDate = cetakData.tanggalKalkulasi ? new Date(cetakData.tanggalKalkulasi) : new Date();
           const strCalculationDate = `${calculationDate.getDate()} ${namaBulan[calculationDate.getMonth()]} ${calculationDate.getFullYear()}`;
@@ -1351,33 +1626,22 @@ export default function RekapanGajiPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">1. Gaji Pokok</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.gajiPokok) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">2. Lembur</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.lembur) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">3. Bonus / Insentif</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.thr || 0) + Number(cetakData.homestay || 0))}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">4.</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">5.</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-transparent">6.</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right text-transparent">0</td>
-                      </tr>
+                      {Array.from({ length: maxRows }).map((_, i) => {
+                        const item = incomeList[i];
+                        return (
+                          <tr key={i}>
+                            <td className="border border-[#8f3d1b] px-2 py-1.5">
+                              {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
+                            </td>
+                            <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                              {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
                       <tr className="font-bold bg-orange-50/50">
                         <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL PENGHASILAN</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(gajiBruto)}</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPenghasilan)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1392,33 +1656,22 @@ export default function RekapanGajiPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">1. Kasbon Lama</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonLama) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">2. Terlambat / Kostum</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.dendaKostum) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">3. Kasbon Makanan</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.kasbonMakanan) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">4. Potongan Bulanan</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.potonganBulanan) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">5. Panjar</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.panjar) || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5">6. Tidak Hadir</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">{formatAngkaSaja(Number(cetakData.tidakHadir) || 0)}</td>
-                      </tr>
+                      {Array.from({ length: maxRows }).map((_, i) => {
+                        const item = deductionList[i];
+                        return (
+                          <tr key={i}>
+                            <td className="border border-[#8f3d1b] px-2 py-1.5">
+                              {item ? item.label : <span className="text-transparent">{i + 1}.</span>}
+                            </td>
+                            <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">
+                              {item ? formatAngkaSaja(item.value) : <span className="text-transparent">0</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
                       <tr className="font-bold bg-orange-50/50">
                         <td className="border border-[#8f3d1b] px-2 py-1.5">TOTAL POTONGAN</td>
-                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotong)}</td>
+                        <td className="border border-[#8f3d1b] px-2 py-1.5 text-right">Rp{formatAngkaSaja(totalPotongan)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1452,6 +1705,355 @@ export default function RekapanGajiPage() {
           );
         })}
       </div>
+
+      {/* MODAL KELOLA ITEM GAJI CUSTOM */}
+      {isManageItemModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 print:hidden">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsManageItemModalOpen(false)}
+          />
+          <div className="relative bg-white rounded-2xl w-full max-w-lg shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-700 to-gray-900 px-6 py-4 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <PlusCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    Kelola Komponen Gaji Custom
+                  </h3>
+                  <p className="text-white/80 text-xs font-medium">
+                    Tambah item pemasukan/potongan tambahan untuk tabel & slip
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageItemModalOpen(false)}
+                className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Tab Header Navigation */}
+            <div className="flex border-b border-gray-200 bg-gray-50/80 px-6 pt-3 shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={() => { setActiveTab("custom"); setEditingItem(null); setEditingStandardKey(null); }}
+                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+                  activeTab === "custom"
+                    ? "border-emerald-600 text-emerald-700 bg-white rounded-t-xl border-t border-x border-gray-200"
+                    : "border-transparent text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                <PlusCircle className="w-3.5 h-3.5" /> Item Custom Tambahan ({customKomponen.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab("standard"); setEditingItem(null); setEditingStandardKey(null); }}
+                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+                  activeTab === "standard"
+                    ? "border-emerald-600 text-emerald-700 bg-white rounded-t-xl border-t border-x border-gray-200"
+                    : "border-transparent text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" /> Edit Item Bawaan Sistem (9)
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {activeTab === "custom" ? (
+                <>
+                  {/* Form Tambah / Edit Item Custom */}
+                  {editingItem ? (
+                    <form onSubmit={handleUpdateCustomItem} className="bg-amber-50/70 p-4 rounded-xl border border-amber-200 space-y-4 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                          <Pencil className="w-3.5 h-3.5" /> Edit Item Custom: <span className="underline">{editingItem.nama}</span>
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setEditingItem(null)}
+                          className="text-xs text-gray-500 hover:text-gray-800 underline font-medium"
+                        >
+                          Batal Edit
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Nama Item Komponen</label>
+                        <input
+                          type="text"
+                          value={editingItem.nama}
+                          onChange={(e) => setEditingItem({ ...editingItem, nama: e.target.value })}
+                          placeholder="Contoh: Bonus Tarian, Potongan Seragam, dll."
+                          className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Dampak Terhadap Gaji</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setEditingItem({ ...editingItem, tipe: "pemasukan" })}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                              editingItem.tipe === "pemasukan"
+                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            }`}
+                          >
+                            <TrendingUp className="w-3.5 h-3.5" /> Gaji Bertambah (+ Pemasukan)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingItem({ ...editingItem, tipe: "potongan" })}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                              editingItem.tipe === "potongan"
+                                ? "bg-red-600 text-white border-red-600 shadow-sm"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            }`}
+                          >
+                            <TrendingDown className="w-3.5 h-3.5" /> Gaji Terpotong (- Potongan)
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={isAddingItem || !editingItem.nama.trim()}
+                          className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                          <Save className="w-4 h-4" /> {isAddingItem ? "Menyimpan..." : "Simpan Perubahan"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingItem(null)}
+                          className="px-4 py-2.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-all"
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleTambahCustomItem} className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200/80 space-y-4">
+                      <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Tambah Item Komponen Baru</h4>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Nama Item Komponen</label>
+                        <input
+                          type="text"
+                          value={newNamaItem}
+                          onChange={(e) => setNewNamaItem(e.target.value)}
+                          placeholder="Contoh: Bonus Tarian, Potongan Seragam, dll."
+                          className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 font-medium"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Dampak Terhadap Gaji</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setNewTipeItem("pemasukan")}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                              newTipeItem === "pemasukan"
+                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            }`}
+                          >
+                            <TrendingUp className="w-3.5 h-3.5" /> Gaji Bertambah (+ Pemasukan)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewTipeItem("potongan")}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                              newTipeItem === "potongan"
+                                ? "bg-red-600 text-white border-red-600 shadow-sm"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            }`}
+                          >
+                            <TrendingDown className="w-3.5 h-3.5" /> Gaji Terpotong (- Potongan)
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isAddingItem || !newNamaItem.trim()}
+                        className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" /> {isAddingItem ? "Menyimpan..." : "Simpan Item Komponen"}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Daftar Item Custom */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider">Daftar Komponen Custom Tersimpan ({customKomponen.length})</h4>
+                    {customKomponen.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic py-3 text-center border border-dashed border-gray-200 rounded-xl">
+                        Belum ada komponen gaji custom yang ditambahkan.
+                      </p>
+                    ) : (
+                      <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden">
+                        {customKomponen.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`p-3 flex items-center justify-between transition-colors ${
+                              editingItem?.id === item.id ? "bg-amber-50" : "bg-white hover:bg-gray-50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                item.tipe === "pemasukan"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}>
+                                {item.tipe === "pemasukan" ? "+ Pemasukan" : "- Potongan"}
+                              </span>
+                              <span className="text-sm font-bold text-gray-800">{item.nama}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(item)}
+                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
+                                title="Edit Komponen"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleHapusCustomItem(item.id, item.nama)}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Hapus Komponen"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* Tab Komponen Bawaan Sistem */
+                <div className="space-y-4">
+                  <div className="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200 text-xs text-blue-800 space-y-1">
+                    <p className="font-bold">Edit Penamaan Komponen Bawaan Sistem</p>
+                    <p className="text-blue-700">Anda dapat mengubah label/nama tampilan komponen standar seperti Terlambat/Kostum, Kasbon Makanan, Potongan Bulanan, dll. Nama baru akan otomatis muncul di tabel rekapan dan slip gaji.</p>
+                  </div>
+
+                  <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    {[
+                      { key: "lembur", labelDefault: "Lembur", tipe: "pemasukan" },
+                      { key: "thr", labelDefault: "Bonus THR", tipe: "pemasukan" },
+                      { key: "homestay", labelDefault: "Bonus Homestay", tipe: "pemasukan" },
+                      { key: "tidakHadir", labelDefault: "Tidak Hadir", tipe: "potongan" },
+                      { key: "kasbonLama", labelDefault: "Kasbon", tipe: "potongan" },
+                      { key: "dendaKostum", labelDefault: "Terlambat / Kostum", tipe: "potongan" },
+                      { key: "kasbonMakanan", labelDefault: "Kasbon Makanan", tipe: "potongan" },
+                      { key: "potonganBulanan", labelDefault: "Potongan Bulanan", tipe: "potongan" },
+                      { key: "panjar", labelDefault: "Panjar", tipe: "potongan" },
+                    ].map((item) => {
+                      const isEditing = editingStandardKey === item.key;
+                      const activeLabel = standardLabels[item.key] || item.labelDefault;
+
+                      return (
+                        <div key={item.key} className="p-3 bg-white hover:bg-gray-50/80 transition-colors">
+                          {isEditing ? (
+                            <div className="space-y-2 bg-amber-50/80 p-2.5 rounded-lg border border-amber-200">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="font-bold text-amber-900">Ubah Nama: {item.labelDefault}</span>
+                                <span className="text-[10px] text-gray-500">Default: "{item.labelDefault}"</span>
+                              </div>
+                              <input
+                                type="text"
+                                value={editingStandardValue}
+                                onChange={(e) => setEditingStandardValue(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold"
+                              />
+                              <div className="flex gap-2 justify-end pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveStandardLabel(item.key, item.labelDefault)}
+                                  className="px-2.5 py-1 text-[10px] font-bold text-gray-600 hover:text-gray-800 bg-gray-200/70 hover:bg-gray-200 rounded"
+                                >
+                                  Reset Default
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingStandardKey(null)}
+                                  className="px-2.5 py-1 text-[10px] font-bold text-gray-600 hover:text-gray-800 bg-white border border-gray-300 rounded"
+                                >
+                                  Batal
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveStandardLabel(item.key, editingStandardValue)}
+                                  className="px-3 py-1 text-[10px] font-bold text-white bg-amber-600 hover:bg-amber-700 rounded shadow-sm"
+                                >
+                                  Simpan
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  item.tipe === "pemasukan" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                }`}>
+                                  {item.tipe === "pemasukan" ? "+ Pemasukan" : "- Potongan"}
+                                </span>
+                                <div>
+                                  <span className="text-sm font-bold text-gray-800">{activeLabel}</span>
+                                  {activeLabel !== item.labelDefault && (
+                                    <span className="text-[10px] text-gray-400 block">(Bawaan: {item.labelDefault})</span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingStandardKey(item.key);
+                                  setEditingStandardValue(activeLabel);
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-100 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
+                                title="Edit Nama Komponen"
+                              >
+                                <Pencil className="w-3.5 h-3.5" /> Edit
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsManageItemModalOpen(false)}
+                className="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm"
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         @media print {
