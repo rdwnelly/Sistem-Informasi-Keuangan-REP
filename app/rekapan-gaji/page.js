@@ -619,48 +619,30 @@ export default function RekapanGajiPage() {
       const pdfBase64Data = pdf.output('datauristring');
       const base64String = pdfBase64Data.split(',')[1];
 
-      // 2. Kirim dokumen PDF secara otomatis melalui Robot WhatsApp Microservice
-      let sentViaBot = false;
-      try {
-        const botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': '121DW4N311y'
-          },
-          body: JSON.stringify({
-            nomor: cleanPhone,
-            pesan: msg,
-            fileName: fileName,
-            pdfBase64: base64String
-          })
-        });
+      // 2. Kirim dokumen PDF langsung melalui WhatsApp terhubung
+      const botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': '121DW4N311y'
+        },
+        body: JSON.stringify({
+          nomor: cleanPhone,
+          pesan: msg,
+          fileName: fileName,
+          pdfBase64: base64String
+        })
+      });
 
-        if (botResponse.ok) {
-          const resData = await botResponse.json();
-          if (resData.status === 'sukses' || resData.success) {
-            sentViaBot = true;
-          }
-        }
-      } catch (botErr) {
-        console.warn("Robot WA service not reachable or failed:", botErr);
-      }
+      const resData = await botResponse.json();
 
-      if (sentViaBot) {
+      if (botResponse.ok && (resData.status === 'sukses' || resData.success)) {
         setStatus({
           type: "success",
-          message: `Dokumen PDF Slip Gaji (${fileName}) & pesan berhasil dikirim otomatis ke WhatsApp ${data.namaKaryawan}!`,
+          message: `Dokumen PDF Slip Gaji (${fileName}) berhasil dikirim ke WhatsApp ${data.namaKaryawan}!`,
         });
       } else {
-        // Fallback jika robot belum merespons: Unduh PDF + Buka WhatsApp Web
-        pdf.save(fileName);
-        const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, '_blank');
-
-        setStatus({
-          type: "success",
-          message: `Robot WA offline. File PDF (${fileName}) diunduh & WhatsApp Web dibuka. Silakan lampirkan file PDF tersebut.`,
-        });
+        throw new Error(resData.error || 'Gagal mengirim pesan dari WhatsApp Bot');
       }
 
     } catch (error) {
@@ -1673,7 +1655,7 @@ export default function RekapanGajiPage() {
                 disabled={isSendingWa}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
               >
-                <Send className="w-3.5 h-3.5" /> {isSendingWa ? 'Mengirim...' : 'Kirim via WA Web'}
+                <Send className="w-3.5 h-3.5" /> {isSendingWa ? 'Mengirim...' : 'Kirim via WA'}
               </button>
             </div>
           </div>
