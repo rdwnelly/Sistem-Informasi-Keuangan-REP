@@ -591,7 +591,7 @@ export default function RekapanGajiPage() {
 
       msg += `\n*Terima kasih atas dedikasi dan kerja keras Anda!*`;
 
-      // 1. Render & unduh file PDF slip gaji secara otomatis (dimensi presisi A4 794px x 1123px)
+      // 1. Render slip gaji ke PDF (dimensi presisi A4 794px x 1123px) & dapatkan base64 string
       setDataCetakList([data]);
       await new Promise((resolve) => setTimeout(resolve, 600));
 
@@ -615,16 +615,53 @@ export default function RekapanGajiPage() {
 
       const fileName = `Slip_Gaji_${data.namaKaryawan.replace(/\s+/g, '_')}_${namaBulanArr[(data.periodeBulan || bulan) - 1]}_${data.periodeTahun || tahun}.pdf`;
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(fileName); // Mengunduh file PDF ke komputer admin
 
-      // 2. Langsung buka WhatsApp Web di tab baru dengan teks pesan terisi otomatis
-      const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+      const pdfBase64Data = pdf.output('datauristring');
+      const base64String = pdfBase64Data.split(',')[1];
 
-      setStatus({
-        type: "success",
-        message: `File PDF (${fileName}) berhasil diunduh & WhatsApp Web dibuka! Silakan melampirkan file PDF tersebut di WhatsApp Web.`,
-      });
+      // 2. Kirim dokumen PDF secara otomatis melalui Robot WhatsApp Microservice
+      let sentViaBot = false;
+      try {
+        const botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': '121DW4N311y'
+          },
+          body: JSON.stringify({
+            nomor: cleanPhone,
+            pesan: msg,
+            fileName: fileName,
+            pdfBase64: base64String
+          })
+        });
+
+        if (botResponse.ok) {
+          const resData = await botResponse.json();
+          if (resData.status === 'sukses' || resData.success) {
+            sentViaBot = true;
+          }
+        }
+      } catch (botErr) {
+        console.warn("Robot WA service not reachable or failed:", botErr);
+      }
+
+      if (sentViaBot) {
+        setStatus({
+          type: "success",
+          message: `Dokumen PDF Slip Gaji (${fileName}) & pesan berhasil dikirim otomatis ke WhatsApp ${data.namaKaryawan}!`,
+        });
+      } else {
+        // Fallback jika robot belum merespons: Unduh PDF + Buka WhatsApp Web
+        pdf.save(fileName);
+        const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
+
+        setStatus({
+          type: "success",
+          message: `Robot WA offline. File PDF (${fileName}) diunduh & WhatsApp Web dibuka. Silakan lampirkan file PDF tersebut.`,
+        });
+      }
 
     } catch (error) {
       console.error("Error sending WA:", error);
