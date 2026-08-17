@@ -522,68 +522,111 @@ export default function RekapanGajiPage() {
 
   const handleKirimWA = async (data) => {
     const defaultNoHp = data.noHp || "";
-    const noHp = window.prompt(`Masukkan Nomor WA untuk ${data.namaKaryawan} (Contoh: 08123... / 628123...):`, defaultNoHp);
-    if (!noHp) return; // User cancel
+    const inputNoHp = window.prompt(
+      `Masukkan Nomor WA untuk ${data.namaKaryawan} (Contoh: 08123... / 628123...):`,
+      defaultNoHp
+    );
+    if (inputNoHp === null) return; // User cancel
+
+    const trimmedNoHp = inputNoHp.trim();
+    if (!trimmedNoHp) {
+      alert("Nomor WhatsApp tidak boleh kosong!");
+      return;
+    }
+
+    let cleanPhone = trimmedNoHp.replace(/\D/g, "");
+    if (cleanPhone.startsWith("0")) {
+      cleanPhone = "62" + cleanPhone.slice(1);
+    } else if (cleanPhone.startsWith("8")) {
+      cleanPhone = "62" + cleanPhone;
+    }
 
     setIsSendingWa(true);
-    setStatus({ type: "success", message: "Memproses slip gaji & mengirim ke WA..." });
+    setStatus({ type: "info", message: "Menyiapkan slip gaji dan membuka WhatsApp Web..." });
+
     try {
-      // Tampilkan elemen slip-container untuk dirender (kita gunakan dataCetakList)
-      setDataCetakList([data]);
-      
-      // Tunggu DOM update
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      const slipElement = document.querySelector('.slip-container');
-      if (!slipElement) throw new Error('Gagal merender slip gaji untuk PDF');
+      const namaBulanArr = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      const periodeStr = `${namaBulanArr[(data.periodeBulan || bulan) - 1]} ${data.periodeTahun || tahun}`;
+      const { incomeList, deductionList, totalPenghasilan, totalPotongan, netGajiCetak } = getSlipLists(data);
+      const fmt = (val) => new Intl.NumberFormat("id-ID").format(val);
 
-      // Manipulasi sementara agar bisa dicapture html2canvas
-      const cetakArea = slipElement.parentElement;
-      const originalClasses = cetakArea.className;
-      cetakArea.className = "print:block font-sans text-black bg-white w-full fixed top-0 left-[-9999px] z-[-1]";
+      let msg = `*SLIP GAJI KARYAWAN*\n`;
+      msg += `*RUMAH ETNIK PAPUA*\n`;
+      msg += `------------------------------------------\n`;
+      msg += `👤 *Nama:* ${data.namaKaryawan}\n`;
+      msg += `💼 *Jabatan:* ${data.jabatan || "KARYAWAN"}\n`;
+      msg += `📅 *Periode:* ${periodeStr}\n`;
+      msg += `⏱️ *Hari Hadir:* ${data.hariHadir} Hari\n`;
+      msg += `------------------------------------------\n\n`;
 
-      // Buat canvas
-      const canvas = await html2canvas(slipElement, { scale: 2, useCORS: true });
-      
-      // Kembalikan styling seperti semula
-      cetakArea.className = originalClasses;
-      // Bersihkan layar
-      setDataCetakList([]);
-
-      // Buat PDF
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      
-      const pdfBase64Data = pdf.output('datauristring');
-      const base64String = pdfBase64Data.split(',')[1];
-      const namaBulanArr = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-
-      // Kirim ke API Bot
-      const response = await fetch('http://localhost:3001/api/kirim-slip', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nomor: noHp,
-          pesan: `Halo ${data.namaKaryawan}, berikut adalah dokumen Slip Gaji Anda untuk periode ${namaBulanArr[bulan - 1]} ${tahun}. Terima kasih!`,
-          fileName: `Slip_Gaji_${data.namaKaryawan.replace(/ /g, '_')}_${namaBulanArr[bulan - 1]}_${tahun}.pdf`,
-          pdfBase64: base64String
-        })
+      msg += `📌 *RINCIAN PENGHASILAN:*\n`;
+      incomeList.forEach((item) => {
+        if (item.value > 0) {
+          msg += `• ${item.label}: Rp ${fmt(item.value)}\n`;
+        }
       });
+      msg += `*Total Penghasilan:* Rp ${fmt(totalPenghasilan)}\n\n`;
 
-      const result = await response.json();
-      if(response.ok) {
-        setStatus({ type: "success", message: `Slip gaji berhasil dikirim ke WhatsApp ${data.namaKaryawan}!` });
-      } else {
-        throw new Error(result.error || 'Gagal mengirim pesan dari Bot');
+      if (totalPotongan > 0) {
+        msg += `🔻 *RINCIAN POTONGAN:*\n`;
+        deductionList.forEach((item) => {
+          if (item.value > 0) {
+            msg += `• ${item.label}: Rp ${fmt(item.value)}\n`;
+          }
+        });
+        msg += `*Total Potongan:* Rp ${fmt(totalPotongan)}\n\n`;
       }
 
+      msg += `------------------------------------------\n`;
+      msg += `💰 *GAJI BERSIH (NET GAJI):* *Rp ${fmt(netGajiCetak)}*\n`;
+      msg += `Terbilang: _(${terbilang(netGajiCetak)} Rupiah)_\n`;
+      msg += `------------------------------------------\n`;
+
+      if (data.catatan) {
+        msg += `\n📝 *Catatan:* ${data.catatan}\n`;
+      }
+
+      msg += `\n*Terima kasih atas dedikasi dan kerja keras Anda!*`;
+
+      // Unduh file PDF secara otomatis untuk pengguna
+      setDataCetakList([data]);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const slipElement = document.querySelector('.slip-container');
+      if (slipElement) {
+        const cetakArea = slipElement.parentElement;
+        const originalClasses = cetakArea.className;
+        cetakArea.className = "print:block font-sans text-black bg-white w-full fixed top-0 left-[-9999px] z-[-1]";
+
+        const canvas = await html2canvas(slipElement, { scale: 2, useCORS: true });
+        cetakArea.className = originalClasses;
+        setDataCetakList([]);
+
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+        const fileName = `Slip_Gaji_${data.namaKaryawan.replace(/\s+/g, '_')}_${namaBulanArr[(data.periodeBulan || bulan) - 1]}_${data.periodeTahun || tahun}.pdf`;
+        pdf.save(fileName);
+      }
+
+      // Langsung buka WhatsApp Web di tab baru
+      const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+
+      setStatus({
+        type: "success",
+        message: `Membuka WhatsApp Web untuk ${data.namaKaryawan} & mengunduh PDF slip gaji!`,
+      });
     } catch (error) {
-      console.error(error);
-      setStatus({ type: "error", message: `Gagal mengirim WA: ${error.message}` });
-      setDataCetakList([]); // Pastikan layar bersih jika error
+      console.error("Error sending WA:", error);
+      setStatus({ type: "error", message: `Gagal memproses pengiriman WA: ${error.message}` });
+      setDataCetakList([]);
     } finally {
       setIsSendingWa(false);
       setTimeout(() => setStatus({ type: "", message: "" }), 5000);
@@ -1570,6 +1613,28 @@ export default function RekapanGajiPage() {
                   );
                 })()}
               </div>
+            </div>
+            {/* Footer Action Preview */}
+            <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap justify-end gap-3 shrink-0">
+              <button
+                onClick={() => setIsPreviewModalOpen(false)}
+                className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm"
+              >
+                Tutup
+              </button>
+              <button
+                onClick={() => handleCetakSlip(previewData)}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <Printer className="w-3.5 h-3.5" /> Cetak Slip
+              </button>
+              <button
+                onClick={() => handleKirimWA(previewData)}
+                disabled={isSendingWa}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Send className="w-3.5 h-3.5" /> {isSendingWa ? 'Mengirim...' : 'Kirim via WA Web'}
+              </button>
             </div>
           </div>
         </div>
