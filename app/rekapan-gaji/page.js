@@ -635,10 +635,10 @@ export default function RekapanGajiPage() {
               Kalkulator akhir bulan dan penerbitan slip gaji PDF.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => setIsManageItemModalOpen(true)}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg active:scale-95 cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" /> Kelola Item Gaji
             </button>
@@ -669,11 +669,11 @@ export default function RekapanGajiPage() {
             <Calculator className="w-5 h-5 text-papua-primary" />
             <span>Kalkulasi Periode:</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <select
               value={bulan}
               onChange={(e) => setBulan(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 font-bold outline-none"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 font-bold outline-none cursor-pointer"
             >
               {namaBulan.map((nama, idx) => (
                 <option key={idx} value={idx + 1}>
@@ -684,7 +684,7 @@ export default function RekapanGajiPage() {
             <select
               value={tahun}
               onChange={(e) => setTahun(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 font-bold outline-none"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 font-bold outline-none cursor-pointer"
             >
               {[2024, 2025, 2026, 2027].map((thn) => (
                 <option key={thn} value={thn}>
@@ -692,6 +692,14 @@ export default function RekapanGajiPage() {
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={() => setIsManageItemModalOpen(true)}
+              className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+              title="Kelola Item Gaji Bawaan & Custom"
+            >
+              <PlusCircle className="w-3.5 h-3.5" /> Kelola Item Gaji
+            </button>
           </div>
         </div>
 
@@ -709,6 +717,21 @@ export default function RekapanGajiPage() {
         )}
 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-3.5 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+              <span>Tabel Rekapan Gaji</span>
+              <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                {dataRekapan.length} Karyawan
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsManageItemModalOpen(true)}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" /> Kelola Item Gaji
+            </button>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className="bg-gray-800 text-white font-medium">
