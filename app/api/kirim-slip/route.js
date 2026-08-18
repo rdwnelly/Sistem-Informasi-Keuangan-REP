@@ -26,12 +26,28 @@ export async function POST(request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey
+        'x-api-key': apiKey,
+        'ngrok-skip-browser-warning': 'true',
+        'User-Agent': 'Mozilla/5.0'
       },
       body: JSON.stringify(body)
     });
 
-    const resData = await botResponse.json();
+    const responseText = await botResponse.text();
+    let resData;
+    try {
+      resData = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('Non-JSON response from bot server:', responseText);
+      return Response.json(
+        {
+          status: 'error',
+          error: `Server WhatsApp Bot mengembalikan respon non-JSON (HTTP ${botResponse.status}). Pastikan URL WA_BOT_URL mengarah ke endpoint API WhatsApp Bot yang aktif.`
+        },
+        { status: 500 }
+      );
+    }
+
     return Response.json(resData, { status: botResponse.status });
   } catch (error) {
     console.error('Error in /api/kirim-slip proxy:', error);
