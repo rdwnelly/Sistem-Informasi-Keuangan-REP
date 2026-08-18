@@ -658,12 +658,23 @@ export default function RekapanGajiPage() {
           message: `Dokumen PDF Slip Gaji (${fileName}) berhasil dikirim ke WhatsApp ${data.namaKaryawan}!`,
         });
       } else {
-        throw new Error(resData?.error || 'Gagal mengirim pesan dari WhatsApp Bot');
+        let rawError = resData?.error || 'Gagal mengirim pesan dari WhatsApp Bot';
+        if (typeof rawError === 'string' && (rawError.includes('detached Frame') || rawError.includes('detached') || rawError.includes('Target closed'))) {
+          rawError = 'Session WhatsApp Bot terputus (detached frame). Silakan restart service WhatsApp Bot di server (localhost:3001).';
+        }
+        setStatus({
+          type: "error",
+          message: `Gagal memproses pengiriman WA: ${rawError}`,
+        });
+        setDataCetakList([]);
       }
-
     } catch (error) {
       console.error("Error sending WA:", error);
-      setStatus({ type: "error", message: `Gagal memproses pengiriman WA: ${error.message}` });
+      let errMsg = error.message || 'Terjadi kesalahan saat pengiriman WhatsApp';
+      if (typeof errMsg === 'string' && (errMsg.includes('detached Frame') || errMsg.includes('detached') || errMsg.includes('Target closed'))) {
+        errMsg = 'Session WhatsApp Bot terputus (detached frame). Silakan restart service WhatsApp Bot di server (localhost:3001).';
+      }
+      setStatus({ type: "error", message: `Gagal memproses pengiriman WA: ${errMsg}` });
       setDataCetakList([]);
     } finally {
       setIsSendingWa(false);
