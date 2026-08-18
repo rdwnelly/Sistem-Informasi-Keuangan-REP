@@ -39,10 +39,14 @@ export async function POST(request) {
       resData = JSON.parse(responseText);
     } catch (parseErr) {
       console.error('Non-JSON response from bot server:', responseText);
+      let detailMsg = `Server WhatsApp Bot mengembalikan respon non-JSON (HTTP ${botResponse.status}). Pastikan URL WA_BOT_URL mengarah ke endpoint API WhatsApp Bot yang aktif.`;
+      if (botResponse.status === 502 || botResponse.status === 503) {
+        detailMsg = `Service WhatsApp Bot offline (HTTP ${botResponse.status}). Pastikan aplikasi bot (whatsappbot) berjalan di laptop Anda (npm start) dan Ngrok terhubung ke port yang benar.`;
+      }
       return Response.json(
         {
           status: 'error',
-          error: `Server WhatsApp Bot mengembalikan respon non-JSON (HTTP ${botResponse.status}). Pastikan URL WA_BOT_URL mengarah ke endpoint API WhatsApp Bot yang aktif.`
+          error: detailMsg
         },
         { status: 500 }
       );
