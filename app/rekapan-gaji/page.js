@@ -628,11 +628,10 @@ export default function RekapanGajiPage() {
 
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          botResponse = await fetch('http://localhost:3001/api/kirim-slip', {
+          botResponse = await fetch('/api/kirim-slip', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': '121DW4N311y'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               nomor: cleanPhone,
