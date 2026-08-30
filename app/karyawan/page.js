@@ -176,6 +176,9 @@ export default function KaryawanPage() {
     setIsModalDetailOpen(true);
   };
 
+  const karyawanAktif = karyawanList.filter((k) => k.statusAktif);
+  const karyawanNonaktif = karyawanList.filter((k) => !k.statusAktif);
+
   return (
     <div className="max-w-5xl mx-auto pb-12 relative">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
@@ -204,23 +207,23 @@ export default function KaryawanPage() {
         </div>
       )}
 
-      {/* TABEL DATA KARYAWAN */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* TABEL DATA KARYAWAN AKTIF */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-8">
         <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
           <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-gray-500" />
-            <h2 className="text-lg font-bold text-papua-primary">
-              Daftar Karyawan
-            </h2>
+            <UserCheck className="w-5 h-5 text-papua-green" />
+            <div>
+              <h2 className="text-lg font-bold text-papua-primary">
+                Daftar Karyawan Aktif
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Karyawan yang saat ini aktif bekerja dan masuk dalam perhitungan gaji bulanan.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-papua-green/10 text-papua-green border border-papua-green/30 rounded-full text-xs font-bold">
-              {karyawanList.filter(k => k.statusAktif).length} Aktif
-            </span>
-            <span className="px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs font-bold">
-              {karyawanList.filter(k => !k.statusAktif).length} Nonaktif
-            </span>
-          </div>
+          <span className="px-3 py-1 bg-papua-green/10 text-papua-green border border-papua-green/30 rounded-full text-xs font-bold shrink-0">
+            {karyawanAktif.length} Karyawan Aktif
+          </span>
         </div>
 
         <div className="overflow-x-auto">
@@ -242,22 +245,22 @@ export default function KaryawanPage() {
                     <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : karyawanList.length === 0 ? (
+              ) : karyawanAktif.length === 0 ? (
                 <tr>
                   <td
                     colSpan="6"
                     className="px-6 py-8 text-center text-gray-500"
                   >
-                    Belum ada data karyawan. Silakan tambah baru.
+                    Belum ada data karyawan aktif. Silakan klik Tambah Karyawan.
                   </td>
                 </tr>
               ) : (
-                karyawanList.map((karyawan, index) => (
+                karyawanAktif.map((karyawan, index) => (
                   <tr
                     key={karyawan.id}
-                    className={`hover:bg-gray-50 transition-colors ${!karyawan.statusAktif ? "opacity-60 bg-gray-50" : ""}`}
+                    className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4 text-center text-gray-400">
+                    <td className="px-6 py-4 text-center text-gray-400 font-medium">
                       {index + 1}
                     </td>
                     <td className="px-6 py-4 font-bold text-papua-primary">
@@ -270,10 +273,8 @@ export default function KaryawanPage() {
                       {formatRupiah(karyawan.gajiPokok)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span
-                        className={`px-3 py-1 text-xs font-bold rounded-full border ${karyawan.statusAktif ? "bg-papua-green/10 text-papua-green border-papua-green/30" : "bg-papua-red/10 text-papua-red border-papua-red/30"}`}
-                      >
-                        {karyawan.statusAktif ? "AKTIF" : "NONAKTIF"}
+                      <span className="px-3 py-1 text-xs font-bold rounded-full border bg-papua-green/10 text-papua-green border-papua-green/30">
+                        AKTIF
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
@@ -299,18 +300,117 @@ export default function KaryawanPage() {
                             karyawan.nama,
                           )
                         }
-                        className={`p-2 border rounded-lg transition-colors ${karyawan.statusAktif ? "text-gray-400 hover:text-papua-red hover:bg-papua-red/10 border-gray-200" : "text-gray-400 hover:text-papua-green hover:bg-papua-green/10 border-gray-200"}`}
-                        title={
-                          karyawan.statusAktif
-                            ? "Nonaktifkan Karyawan"
-                            : "Aktifkan Karyawan"
-                        }
+                        className="p-2 text-gray-400 hover:text-papua-red hover:bg-papua-red/10 border border-gray-200 rounded-lg transition-colors"
+                        title="Nonaktifkan Karyawan"
                       >
-                        {karyawan.statusAktif ? (
-                          <UserX className="w-4 h-4" />
-                        ) : (
-                          <UserCheck className="w-4 h-4" />
-                        )}
+                        <UserX className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* TABEL DATA KARYAWAN NONAKTIF */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
+          <div className="flex items-center gap-3">
+            <UserX className="w-5 h-5 text-gray-500" />
+            <div>
+              <h2 className="text-lg font-bold text-gray-700">
+                Daftar Karyawan Nonaktif
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Karyawan yang telah dinonaktifkan (tidak masuk dalam rekapan gaji bulanan).
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs font-bold shrink-0">
+            {karyawanNonaktif.length} Karyawan Nonaktif
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white text-gray-500 font-medium border-b border-gray-100">
+              <tr>
+                <th className="px-6 py-4 w-12 text-center">No</th>
+                <th className="px-6 py-4">Nama Lengkap</th>
+                <th className="px-6 py-4">Jabatan</th>
+                <th className="px-6 py-4 text-right">Gaji Pokok (Rp)</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center">
+                    <RefreshCw className="w-6 h-6 text-papua-accent animate-spin mx-auto" />
+                  </td>
+                </tr>
+              ) : karyawanNonaktif.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center text-gray-400 italic"
+                  >
+                    Tidak ada data karyawan nonaktif.
+                  </td>
+                </tr>
+              ) : (
+                karyawanNonaktif.map((karyawan, index) => (
+                  <tr
+                    key={karyawan.id}
+                    className="hover:bg-gray-50/80 bg-gray-50/40 text-gray-500 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-center text-gray-400 font-medium">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 font-bold text-gray-700">
+                      {karyawan.nama}
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {karyawan.jabatan}
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-gray-600">
+                      {formatRupiah(karyawan.gajiPokok)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="px-3 py-1 text-xs font-bold rounded-full border bg-papua-red/10 text-papua-red border-papua-red/30">
+                        NONAKTIF
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => openModalDetail(karyawan)}
+                        className="p-2 text-gray-400 hover:text-blue-500 bg-white border border-gray-200 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Detail Karyawan"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openModalEdit(karyawan)}
+                        className="p-2 text-gray-400 hover:text-papua-primary bg-white border border-gray-200 hover:bg-papua-accent/10 rounded-lg transition-colors"
+                        title="Edit Data"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          toggleStatus(
+                            karyawan.id,
+                            karyawan.statusAktif,
+                            karyawan.nama,
+                          )
+                        }
+                        className="p-2 text-gray-400 hover:text-papua-green hover:bg-papua-green/10 border border-gray-200 rounded-lg transition-colors"
+                        title="Aktifkan Kembali Karyawan"
+                      >
+                        <UserCheck className="w-4 h-4 text-emerald-600" />
                       </button>
                     </td>
                   </tr>

@@ -206,6 +206,12 @@ export default function RekapanGajiPage() {
         const totalPanjarBulanIni = rekapPanjar[karyawan.id] || 0;
         const autoCatatanPanjar = catatanPanjarObj[karyawan.id] ? catatanPanjarObj[karyawan.id].join(", ") : "";
 
+        // Sinkronisasi data master karyawan (Gaji Pokok, Jabatan, Nama, dsb) langsung dari Buku Induk Karyawan
+        const gajiPokokTerkini =
+          karyawan.gajiPokok !== undefined && karyawan.gajiPokok !== null
+            ? Number(karyawan.gajiPokok)
+            : (Number(tersimpan?.gajiPokok) || 0);
+
         if (tersimpan) {
           let mergedCatatan = tersimpan.catatan || "";
           if (autoCatatanPanjar && !mergedCatatan.includes("Panjar")) {
@@ -214,10 +220,12 @@ export default function RekapanGajiPage() {
 
           return {
             ...tersimpan,
+            gajiPokok: gajiPokokTerkini,
+            jabatan: karyawan.jabatan || tersimpan.jabatan || "KARYAWAN",
             panjar: totalPanjarBulanIni,
             catatan: mergedCatatan,
             namaKaryawan: karyawan.nama,
-            hariHadir: tersimpan.hariHadir || 28,
+            hariHadir: tersimpan.hariHadir !== undefined ? tersimpan.hariHadir : 28,
             noHp: karyawan.noHp || tersimpan.noHp || "",
             rekeningBank: karyawan.rekeningBank || tersimpan.rekeningBank || "",
             customItems: tersimpan.customItems || {},
@@ -229,7 +237,7 @@ export default function RekapanGajiPage() {
           namaKaryawan: karyawan.nama,
           jabatan: karyawan.jabatan || "KARYAWAN",
           hariHadir: 28,
-          gajiPokok: karyawan.gajiPokok,
+          gajiPokok: gajiPokokTerkini,
           lembur: 0,
           thr: 0,
           homestay: 0,
@@ -1232,6 +1240,21 @@ export default function RekapanGajiPage() {
 
                   <div className="space-y-4">
                     <label className="block text-sm">
+                      <div className="text-xs font-bold text-gray-600 mb-1">Gaji Pokok (Buku Induk)</div>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-semibold text-sm pointer-events-none">Rp</span>
+                        <input
+                          type="text"
+                          value={new Intl.NumberFormat("id-ID").format(activeKaryawan.gajiPokok || 0)}
+                          className="pl-9 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-100 text-gray-700 outline-none cursor-not-allowed font-bold"
+                          readOnly
+                          title="Gaji Pokok tersinkronisasi otomatis dari Buku Induk Karyawan"
+                        />
+                      </div>
+                      <div className="text-[10px] text-emerald-600 font-medium mt-1">✓ Sinkron otomatis dari Buku Induk Karyawan</div>
+                    </label>
+
+                    <label className="block text-sm">
                       <div className="text-xs font-bold text-gray-600 mb-1">Hari Hadir (Hari)</div>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -2128,7 +2151,7 @@ export default function RekapanGajiPage() {
                             <div className="space-y-2 bg-amber-50/80 p-2.5 rounded-lg border border-amber-200">
                               <div className="flex justify-between items-center text-xs">
                                 <span className="font-bold text-amber-900">Ubah Nama: {item.labelDefault}</span>
-                                <span className="text-[10px] text-gray-500">Default: "{item.labelDefault}"</span>
+                                <span className="text-[10px] text-gray-500">Default: &quot;{item.labelDefault}&quot;</span>
                               </div>
                               <input
                                 type="text"

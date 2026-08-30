@@ -77,7 +77,7 @@ function LayoutWrapper({ children }) {
       <div className="flex-1 flex flex-col md:ml-64 min-h-screen w-full transition-all duration-300 ease-in-out relative">
         {/* Decorative subtle top border/motif */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-papua-pattern opacity-30 pointer-events-none"></div>
-        
+
         {/* Header Khusus Mobile (Disembunyikan di Desktop) */}
         <header className="bg-papua-bg border-b border-papua-primary/10 p-3 flex items-center justify-between md:hidden sticky top-0 z-30 shadow-sm relative">
           <div className="absolute inset-0 bg-papua-pattern opacity-5 pointer-events-none mix-blend-overlay"></div>
