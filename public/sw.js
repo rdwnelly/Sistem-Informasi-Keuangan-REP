@@ -1,4 +1,4 @@
-const CACHE_NAME = "sik-rep-cache-v3";
+const CACHE_NAME = "sik-rep-cache-v4";
 const PRECACHE_URLS = [
   "/",
   "/manifest.json",
@@ -35,6 +35,9 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
+
+  // Jangan tangani request ke domain eksternal (Firestore, Google APIs, dsb)
+  if (url.origin !== self.location.origin) return;
   const isDocument =
     event.request.mode === "navigate" ||
     (event.request.headers.get("accept") &&

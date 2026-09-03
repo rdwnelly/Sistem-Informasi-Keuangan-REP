@@ -53,6 +53,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     };
   }, [isOpen]);
 
+  // Flag untuk mengontrol visibilitas menu SDM & PENGGAJIAN
+  // Set ke true bila ingin memunculkan kembali menu ini di halaman/sidebar
+  const SHOW_SDM_MENU = false;
+
   const menuGroups = [
     {
       title: "AKUNTANSI & KEUANGAN",
@@ -65,14 +69,18 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         { name: "Laporan Keuangan", path: "/laporan-keuangan", icon: Wallet },
       ],
     },
-    {
-      title: "SDM & PENGGAJIAN",
-      menus: [
-        { name: "Data Karyawan", path: "/karyawan", icon: Users },
-        { name: "Catatan Panjar", path: "/panjar", icon: WalletCards },
-        { name: "Rekapan & Slip Gaji", path: "/rekapan-gaji", icon: FileText },
-      ],
-    },
+    ...(SHOW_SDM_MENU
+      ? [
+          {
+            title: "SDM & PENGGAJIAN",
+            menus: [
+              { name: "Data Karyawan", path: "/karyawan", icon: Users },
+              { name: "Catatan Panjar", path: "/panjar", icon: WalletCards },
+              { name: "Rekapan & Slip Gaji", path: "/rekapan-gaji", icon: FileText },
+            ],
+          },
+        ]
+      : []),
     {
       title: "UNIT USAHA",
       menus: [
