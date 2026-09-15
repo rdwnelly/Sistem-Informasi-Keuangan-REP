@@ -55,7 +55,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   // Flag untuk mengontrol visibilitas menu SDM & PENGGAJIAN
   // Set ke true bila ingin memunculkan kembali menu ini di halaman/sidebar
-  const SHOW_SDM_MENU = false;
+  const SHOW_SDM_MENU = true;
 
   const menuGroups = [
     {
